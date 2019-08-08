@@ -1,5 +1,5 @@
 # Perform linear regression on the gene count data (version 7).
-#  Find correlation between mean X chm expression and XIST across tissues per individual
+#  Find correlation between mean X chm expression and XIST across all tissues per individual
 
 # Constants
 COUNTS <- "~/XIST_Vs_TSIX/Files/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct"
@@ -477,7 +477,7 @@ MeanX_XIST.df$Bal_Variable_Mean <- unlist(Res_Bal_Variable_XIST)
 MeanX_XIST.df$Immune_Variable_Mean <- unlist(Res_Immune_Variable_XIST)
 
 # ________________________________________________________________________________________________________
-# Table 1; Columns 7-10
+# Table 1; Columns 11-14
 # Correlation of all genes reported as incompletely silenced with XIST
 # ________________________________________________________________________________________________________
 
@@ -592,7 +592,7 @@ MeanX_XIST.df$Bal_Incomplete_Mean <- unlist(Res_Bal_Incomplete_XIST)
 MeanX_XIST.df$Immune_Incomplete_Mean <- unlist(Res_Immune_Incomplete_XIST)
 
 # ________________________________________________________________________________________________________
-# Table 1; Columns 11-14
+# Table 1; Columns 15-18
 # Correlation of all genes/ all genes not evaluated / PAR genes with XIST
 # ________________________________________________________________________________________________________
 
@@ -753,8 +753,39 @@ df_lst <- list(df1, df2, df3, df4, df5, df6, df7, df8, df9, df10, df11, df12, df
 
 Combined <- Reduce(merge, lapply(df_lst, function(x) data.frame(x, rn = row.names(x))))
 
+# Add column listing the total number of tissues for each individual
+# Get number of columns for each person in Ind_Counts excluding the first 2
+Num_Tissues <- sapply(Ind_Counts, ncol)
+Num_Tissues <- Num_Tissues - 2
+
+MeanX_XIST.df$Number_Tissues <- Num_Tissues
+
 # Write to file
 write.csv(Combined, "Linear_Models_Summary.csv")
 
 write.csv(MeanX_XIST.df, "Individual_Correlation.csv")
 
+# ________________________________________________________________________________________________________
+#  Plots
+# ________________________________________________________________________________________________________
+
+# Get individual with highest average X chromsomes expression R^2 and plot
+# ASK: Do I just remove the people with only a handful of samples? What would be a reasonable cut-off?
+# For now: Cutoff of min 5 tissue samples
+Sub_MeanX_XIST.df <- MeanX_XIST.df[which(MeanX_XIST.df$Number_Tissues > 5),]
+Highest_R2 <- Sub_MeanX_XIST.df[which.max(Sub_MeanX_XIST.df$R2_MeanX),]
+
+# Plot 
+plot(XIST_Ind_Counts$'GTEX-R55G', MeanX_Ind_Counts$'GTEX-R55G', 
+     main = "Scatterplot of individual with highest R^2",
+     xlab = 'XIST count',
+     ylab = 'Mean X chromosome gene count')
+
+
+# Make a histogram that shows the female and male R^2 values
+Fem_R2 <- subset(MeanX_XIST.df, Sex == "Female")$R2_Mean
+Male_R2 <- subset(MeanX_XIST.df, Sex == "Male")$R2_Mean
+
+
+hist(Fem_R2)
+hist(Male_R2)
