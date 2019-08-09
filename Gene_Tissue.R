@@ -2,7 +2,8 @@
 # Find correlation between mean X chm expression and XIST per tissue across individuals. 
 
 # Constants
-COUNTS <- "~/XIST_Vs_TSIX/Files/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct"
+COUNTS <- "~/XIST_Vs_TSIX/Files/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_tpm.gct" # TPM normalized
+# COUNTS <- "~/XIST_Vs_TSIX/Files/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct" # These are unnormalized counts
 METRICS <- "~/XIST_Vs_TSIX/Files/GTEx_Data_20160115_v7_RNAseq_RNASeQCv1.1.8_metrics.tsv"
 PHENOTYPES <- "~/XIST_Vs_TSIX/Files/GTEX_v7_Annotations_SubjectPhenotypesDS.txt"
 GENCODE <- "gencode.v19.genes.v7.patched_contigs.gff3"
@@ -71,6 +72,8 @@ which(is.na(Individual_IDs)) # 738; last item in list
 Individual_IDs <- Individual_IDs[!is.na(Individual_IDs)]
 
 # For each tissue, make a df of samples from that tissue and store in list.
+Types <- unique(Metrics$Tissue)
+
 Tissue_Lst <- list()
 for (i in Types){
   Tissue_Lst[[i]] <- Metrics[Metrics$Tissue == i,] 
@@ -446,7 +449,7 @@ Fem_Immune_Silenced_Mean_Vs_XIST <- list()
 for (i in 1:length(Fem_XIST_Tissue_Counts)){
   Fem_Immune_Silenced_Mean_Vs_XIST[[i]] <- Combine_Vectors(Fem_Immune_Mean_Silenced[[i]], Fem_XIST_Tissue_Counts[[i]])
 }
-names(Immune_Silenced_Mean_Vs_XIST) <- names(XIST_Ind_Counts)
+names(Fem_Immune_Silenced_Mean_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
 
 Male_Immune_Silenced_Mean_Vs_XIST <- list()
 for (i in 1:length(Male_XIST_Tissue_Counts)){
@@ -1204,5 +1207,33 @@ m.Combined <- Reduce(merge, lapply(m.df_lst, function(x) data.frame(x, rn = row.
 write.csv(f.Combined, "Female_Tissue_Linear_Models_Summary.csv")
 write.csv(m.Combined, "Male_Tissue_Linear_Models_Summary.csv")
 
-write.csv(Fem_MeanX_XIST.df, "Female_Tissue_Individual_Correlation.csv")
-write.csv(Male_MeanX_XIST.df, "Male_Tissue_Individual_Correlation.csv")
+write.csv(Fem_MeanX_XIST.df, "Female_Tissue_Correlations.csv")
+write.csv(Male_MeanX_XIST.df, "Male_Tissue__Correlations.csv")
+
+# ________________________________________________________________________________________________________
+#  Plots
+# ________________________________________________________________________________________________________
+
+# Table of slopes
+# Get list of female and male tissue type samples
+Fem_Tissues <- rownames(Fem_MeanX_XIST.df)
+Male_Tissues <- rownames(Male_MeanX_XIST.df)
+
+# Extract list of slopes
+Fem_Slopes <- lapply(lm_Fem_MeanX_XIST, function(x){
+  res <- x[[1]][[2]]
+  res
+})
+
+Male_Slopes <- lapply(lm_Male_MeanX_XIST, function(x){
+  res <- x[[1]][[2]]
+  res
+})
+
+# Make and write df
+l <- list(Fem_Slopes, Male_Slopes)
+Slopes.df <- rbindlist(l, use.names=TRUE, fill=TRUE, idcol="Sex")
+Slopes.df$Sex <- c("Female", "Male")
+
+write.csv(Slopes.df, "Tissue_Slopes_Table.csv")
+
