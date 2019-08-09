@@ -2,7 +2,8 @@
 #  Find correlation between mean X chm expression and XIST across all tissues per individual
 
 # Constants
-COUNTS <- "~/XIST_Vs_TSIX/Files/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct"
+COUNTS <- "~/XIST_Vs_TSIX/Files/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_tpm.gct" # TPM normalized
+# COUNTS <- "~/XIST_Vs_TSIX/Files/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct" # These are unnormalized counts
 METRICS <- "~/XIST_Vs_TSIX/Files/GTEx_Data_20160115_v7_RNAseq_RNASeQCv1.1.8_metrics.tsv"
 PHENOTYPES <- "~/XIST_Vs_TSIX/Files/GTEX_v7_Annotations_SubjectPhenotypesDS.txt"
 GENCODE <- "gencode.v19.genes.v7.patched_contigs.gff3"
@@ -26,7 +27,7 @@ Phenotypes <- read_tsv(PHENOTYPES) # Contains sex info
 Gene_Cts <- fread(COUNTS) # df of counts
 Gene_Lst <- fromJSON(file=GENE_LST)
 
-# Create ensemblGenome object for storing Ensembl genomic annotation data
+ # Create ensemblGenome object for storing Ensembl genomic annotation data
 ENS <- ensemblGenome()
 
 # Read in .gff annotation file as ensemblGenome object
@@ -776,16 +777,36 @@ Sub_MeanX_XIST.df <- MeanX_XIST.df[which(MeanX_XIST.df$Number_Tissues > 5),]
 Highest_R2 <- Sub_MeanX_XIST.df[which.max(Sub_MeanX_XIST.df$R2_MeanX),]
 
 # Plot 
-plot(XIST_Ind_Counts$'GTEX-R55G', MeanX_Ind_Counts$'GTEX-R55G', 
+plot(XIST_Ind_Counts$'GTEX-16NPV', MeanX_Ind_Counts$'GTEX-16NPV', 
      main = "Scatterplot of individual with highest R^2",
      xlab = 'XIST count',
      ylab = 'Mean X chromosome gene count')
-
 
 # Make a histogram that shows the female and male R^2 values
 Fem_R2 <- subset(MeanX_XIST.df, Sex == "Female")$R2_Mean
 Male_R2 <- subset(MeanX_XIST.df, Sex == "Male")$R2_Mean
 
+hist(Fem_R2, 
+     main = "Histogram of average female R^2 by individual",
+     xlab = 'R^2')
+hist(Male_R2, 
+     main = "Histogram of average male R^2 by individual",
+     xlab = 'R^2')
 
-hist(Fem_R2)
-hist(Male_R2)
+######################
+# Table of slopes
+
+# Extract list of slopes
+Slopes <- lapply(lm_MeanX_XIST, function(x){
+  res <- x[[1]][[2]]
+  res
+})
+
+# Make and write df
+Slopes <- as.list(Slopes)
+Individuals <- as.list(rownames(MeanX_XIST.df))
+
+l <- list(Individuals, Slopes)
+Slopes.df <- rbindlist(l, use.names=FALSE, fill=FALSE)
+
+write.csv(Slopes.df, "Individual_Slopes_Table.csv")
