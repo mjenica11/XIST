@@ -761,6 +761,26 @@ Num_Tissues <- Num_Tissues - 2
 
 MeanX_XIST.df$Number_Tissues <- Num_Tissues
 
+# Add mean(XIST) and sd(XIST)
+Mean_Func <- function(x, y){
+  res <- mean(x[[y]])
+  return(res)
+}
+
+SD_Func <- function(x, y){
+  res <- sd(x[[y]])
+  return(res)
+}
+
+MeanX_XIST.df$Mean_XIST <- Map(Mean_Func, x=MeanX_Vs_XIST, y='XIST')
+MeanX_XIST.df$sd_XIST <- Map(SD_Func, x=MeanX_Vs_XIST, y='XIST')
+
+# Aggregate females/males next to each other
+MeanX_XIST.df <- MeanX_XIST.df %>% arrange(Sex)
+
+# Convert to character vectors before writing to CSV
+MeanX_XIST.df <- apply(MeanX_XIST.df, 2, as.character)
+
 # Write to file
 write.csv(Combined, "Linear_Models_Summary.csv")
 
