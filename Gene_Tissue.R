@@ -1196,7 +1196,36 @@ m.df16 <- Male_MeanX_XIST.df %>% summarise(Immune_Not_Eval = mean(Immune_Not_Eva
 f.df17 <- Fem_MeanX_XIST.df %>% summarise(Bal_PAR = mean(PAR))
 m.df17 <- Male_MeanX_XIST.df %>% summarise(Bal_PAR = mean(PAR))
 
-# Combine dfs of averages
+# Add column with number of tissues
+Num_Tissues <- function(x){
+  res <- length(x$Sample)
+  return(res)
+}
+
+Num_Fem <- lapply(Fem_Tissue_Lst, Num_Tissues)
+Num_Male <- lapply(Male_Tissue_Lst, Num_Tissues)
+
+# Drop tissues females/males do not have
+f.remove <- c("Prostate", "Testis", "Cells - Leukemia cell line (CML)")
+m.remove <- c("Ovary", "Uterus", "Vagina", "Fallopian Tube", "Cervix - Ectocervix", "Cervix - Endocervix", "Cells - Leukemia cell line (CML)")
+
+Num_Fem <- Num_Fem[!names(Num_Fem) %in% f.remove]
+Num_Male <- Num_Male[!names(Num_Male) %in% m.remove]
+
+Fem_MeanX_XIST.df$Num_Tissues <- Num_Fem
+Male_MeanX_XIST.df$Num_Tissues <- Num_Male
+
+# Add col with mean(XIST) and sd(XIST)
+Fem_MeanX_XIST.df$Mean_XIST <- lapply(Fem_XIST_Tissue_Counts, mean)
+Male_MeanX_XIST.df$Mean_XIST <- lapply(Male_XIST_Tissue_Counts, mean)
+
+Fem_MeanX_XIST.df$sd_XIST <- lapply(Fem_XIST_Tissue_Counts, sd)
+Male_MeanX_XIST.df$sd_XIST <- lapply(Male_XIST_Tissue_Counts, sd)
+
+Fem_MeanX_XIST.df <- apply(Fem_MeanX_XIST.df, 2, as.character)
+Male_MeanX_XIST.df <- apply(Male_MeanX_XIST.df, 2, as.character)
+
+# Combine dfs of averages to make quick summary 
 f.df_lst <- list(f.df1, f.df2, f.df3, f.df4, f.df5, f.df6, f.df7, f.df8, f.df9, f.df10, f.df11, f.df12, f.df13, f.df14, f.df15, f.df16, f.df17)
 m.df_lst <- list(m.df1, m.df2, m.df3, m.df4, m.df5, m.df6, m.df7, m.df8, m.df9, m.df10, m.df11, m.df12, m.df13, m.df14, m.df15, m.df16, m.df17)
 
@@ -1204,15 +1233,10 @@ f.Combined <- Reduce(merge, lapply(f.df_lst, function(x) data.frame(x, rn = row.
 m.Combined <- Reduce(merge, lapply(m.df_lst, function(x) data.frame(x, rn = row.names(x))))
 
 # Write to file
-write.csv(f.Combined, "Female_Tissue_Linear_Models_Summary.csv")
-write.csv(m.Combined, "Male_Tissue_Linear_Models_Summary.csv")
-
-write.csv(Fem_MeanX_XIST.df, "Female_Tissue_Correlations.csv")
-write.csv(Male_MeanX_XIST.df, "Male_Tissue__Correlations.csv")
-
-# ________________________________________________________________________________________________________
-#  Plots
-# ________________________________________________________________________________________________________
+# write.csv(f.Combined, "Female_Tissue_Linear_Models_Summary.csv")
+# write.csv(m.Combined, "Male_Tissue_Linear_Models_Summary.csv")
+# write.csv(Fem_MeanX_XIST.df, "Female_Tissue_Correlations.csv")
+# write.csv(Male_MeanX_XIST.df, "Male_Tissue_Correlations.csv")
 
 # Table of slopes
 # Get list of female and male tissue type samples
@@ -1222,12 +1246,12 @@ Male_Tissues <- rownames(Male_MeanX_XIST.df)
 # Extract list of slopes
 Fem_Slopes <- lapply(lm_Fem_MeanX_XIST, function(x){
   res <- x[[1]][[2]]
-  res
+  return(res)
 })
 
 Male_Slopes <- lapply(lm_Male_MeanX_XIST, function(x){
   res <- x[[1]][[2]]
-  res
+  return(res)
 })
 
 # Make and write df
@@ -1235,5 +1259,52 @@ l <- list(Fem_Slopes, Male_Slopes)
 Slopes.df <- rbindlist(l, use.names=TRUE, fill=TRUE, idcol="Sex")
 Slopes.df$Sex <- c("Female", "Male")
 
-write.csv(Slopes.df, "Tissue_Slopes_Table.csv")
+#write.csv(Slopes.df, "Tissue_Slopes_Table.csv")
+
+
+# ________________________________________________________________________________________________________
+#  Plots
+# ________________________________________________________________________________________________________
+# Scatter plots: Correlation by tissue
+Scatter_Func <- function(x, y, z){
+  plot(x$XIST, x$MeanX, main=y, xlab='XIST', ylab='Mean X chromosome')
+  abline(z)
+}
+
+#pdf('Female_Tissue_Scatter_Plots.pdf')
+f.Scatter <- Map(Scatter_Func, x=Fem_MeanX_Vs_XIST, y=names(Fem_MeanX_Vs_XIST), z=lm_Fem_MeanX_XIST)
+#dev.off()
+#pdf('Male_Tissue_Scatter_Plots.pdf')
+m.Scatter <- Map(Scatter_Func, x=Male_MeanX_Vs_XIST, y=names(Male_MeanX_Vs_XIST), z=lm_Male_MeanX_XIST)
+#dev.off()
+
+
+library(ggplot2)
+library(Hmisc)
+
+# test violin plot
+ggplot(Fem_MeanX_Vs_XIST$`Adipose - Subcutaneous`, aes(x=XIST, y=MeanX)) + 
+  geom_violin() + stat_summary(fun.y=mean, geom="point", shape=23, size=2) + # add mean point
+  stat_summary(fun.data="mean_sdl", mult=1, geom="crossbar", width=0.2 ) +
+  stat_summary(fun.data=mean_sdl, mult=1, geom="pointrange", color="red")
+
+# Violin plot function
+### idk if I need this step
+Drop_Rownames <- function(x){
+  rownames(x) <- c()
+  return(x)
+}
+f.Violin_MeanX_XIST <- lapply(Fem_MeanX_Vs_XIST, Drop_Rownames)
+
+# Have to merge list of dfs to one df
+f.plotData <- do.call("rbind", f.Violin_MeanX_XIST)
+
+Violin_Func <- function(x){
+  ggplot(x, aes(x=XIST, y=MeanX)) + 
+    geom_violin()  
+}
+Map(Violin_Func, x=f.Violin_MeanX_XIST)
+
+
+
 
