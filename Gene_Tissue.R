@@ -1261,24 +1261,62 @@ Slopes.df$Sex <- c("Female", "Male")
 
 #write.csv(Slopes.df, "Tissue_Slopes_Table.csv")
 
-
 # ________________________________________________________________________________________________________
-#  Plots
+#  TO-DO: adjust R_Squared function to also extract p-values
 # ________________________________________________________________________________________________________
-# Scatter plots: Correlation by tissue
-Scatter_Func <- function(x, y, z){
-  plot(x$XIST, x$MeanX, main=y, xlab='XIST', ylab='Mean X chromosome')
-  abline(z)
+# Function to extract r squared  and p values values
+### QUESTION: Do I want to set lower.tail to F?
+Regression_Res <- function(lm){ # expecting object of class 'lm'
+  sum. <- summary(lm)
+  r.2 <- sum.$r.squared
+  p. <- summary(lm)$fstatistic
+  p.val <- pf(p.[1], p.[2], p.[3], lower.tail=FALSE, log.p=FALSE) #pf: F distribution ; arg 2 and 3 are the degrees of freedom 
+  attributes(p.val) <- NULL
+  res <- data.frame(p_val=p.val, r_2=r.2)
+  return(res)
 }
 
+# Apply function to list of dfs
+Res_Fem_MeanX_XIST <- lapply(lm_Fem_MeanX_XIST, Regression_Res)
+Res_Male_MeanX_XIST <- lapply(lm_Male_MeanX_XIST, Regression_Res)
+
+# ________________________________________________________________________________________________________
+#  Scatter Plots
+# ________________________________________________________________________________________________________
+# Find the max x/y values to set as x/y lim
+Max_Func <- function(x, y){
+  lim <- max(x[[y]])
+  return(lim)
+}
+
+# x limits
+f.xmax <- round(max(unlist(Map(Max_Func, x=Fem_MeanX_Vs_XIST, y='XIST'))))
+m.xmax <- max(unlist(Map(Max_Func, x=Male_MeanX_Vs_XIST, y='XIST')))
+# y limits
+f.ymax <- round(max(unlist(Map(Max_Func, x=Fem_MeanX_Vs_XIST, y='MeanX'))))
+m.ymax <- max(unlist(Map(Max_Func, x=Male_MeanX_Vs_XIST, y='MeanX')))
+
+# Scatter plots: Correlation by tissue
+Scatter_Func <- function(LM, TITLE, XMAX, YMAX, RESULTS){
+  plot(LM$model$XIST, LM$model$MeanX, main=TITLE, xlab='XIST', ylab='Mean X chromosome',
+       xlim=c(0, XMAX), ylim=c(0, YMAX))
+  legend("bottomright", bty="n", legend=paste("R^2: ", format(RESULTS$r_2, digits=3), "; p_Val: ", format(RESULTS$p_val, digits=3)))
+  abline(LM)
+}
+
+# Print plots
 #pdf('Female_Tissue_Scatter_Plots.pdf')
-f.Scatter <- Map(Scatter_Func, x=Fem_MeanX_Vs_XIST, y=names(Fem_MeanX_Vs_XIST), z=lm_Fem_MeanX_XIST)
+f.Scatter <- Map(Scatter_Func, LM=lm_Fem_MeanX_XIST, TITLE=names(lm_Fem_MeanX_XIST), XMAX=f.xmax, YMAX=f.ymax, RESULTS=Res_Fem_MeanX_XIST)
 #dev.off()
+
 #pdf('Male_Tissue_Scatter_Plots.pdf')
-m.Scatter <- Map(Scatter_Func, x=Male_MeanX_Vs_XIST, y=names(Male_MeanX_Vs_XIST), z=lm_Male_MeanX_XIST)
+# set x lim to male max(XIST) but keep y lim as female max(MeanX)
+m.Scatter <- Map(Scatter_Func, LM=lm_Male_MeanX_XIST, TITLE=names(lm_Male_MeanX_XIST), XMAX=m.xmax, YMAX=f.ymax, RESULTS=Res_Male_MeanX_XIST)
 #dev.off()
 
-
+# ________________________________________________________________________________________________________
+#  Violin Plots
+# ________________________________________________________________________________________________________
 library(ggplot2)
 library(Hmisc)
 
