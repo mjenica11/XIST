@@ -88,11 +88,11 @@ for (i in seq_along(Tissue_Lst)){
 sapply(Tissue_Lst, function(x) sum(is.na(x)))
 
 # Get list of female IDs
-Female_IDs <- Phenotypes$SUBJID[which(Phenotypes$SEX==2)]
+Fem.IDs <- Phenotypes$SUBJID[which(Phenotypes$SEX==2)]
 
 # Get list of sample sex for each tissue
 Sex_Lst <- lapply(Tissue_Lst, function(x) {
-  x <- with(x['ID'], ifelse(ID %in% Female_IDs, "Female", "Male"))
+  x <- with(x['ID'], ifelse(ID %in% Fem.IDs, "Female", "Male"))
 })
 
 # Add column containing sample sex to each df in list 
@@ -139,158 +139,160 @@ names(Gene_Cts)[1:2] <- c("gene_id", "gene_name")
 Gene_Cts$gene_id <- sub("\\.\\d+$", "", Gene_Cts$gene_id)
 
 # Split tissue lists by sex
-Fem_Tissue_Lst <- lapply(Tissue_Lst, function(x){
+f.Tissue_Lst <- lapply(Tissue_Lst, function(x){
   x[x$Sex == 'Female',]
 })
 
-Male_Tissue_Lst <- lapply(Tissue_Lst, function(x){
+m.Tissue_Lst <- lapply(Tissue_Lst, function(x){
   x[x$Sex == 'Male',]
 })
 
 # Sort count data into list of dfs by tissue 
-Fem_Tissue_Counts <- lapply(Fem_Tissue_Lst, function(x){
+f.Tissue_Counts <- lapply(f.Tissue_Lst, function(x){
   tmp <- which(colnames(Gene_Cts) %in% x$Sample)
   Gene_Cts[, c(1,2,tmp)]
 })
 
-Male_Tissue_Counts <- lapply(Male_Tissue_Lst, function(x){
+m.Tissue_Counts <- lapply(m.Tissue_Lst, function(x){
   tmp <- which(colnames(Gene_Cts) %in% x$Sample)
   Gene_Cts[, c(1,2,tmp)]
 })
 
 # Check for any empty data frames
 # e.g. individuals who have GTEx IDs, but have no tissue samples (no cols in df)
-length(Fem_Tissue_Counts) == length(Filter(function(x) dim(x)[2] > 2, Fem_Tissue_Counts)) # FALSE
-length(Male_Tissue_Counts) == length(Filter(function(x) dim(x)[2] > 2, Male_Tissue_Counts)) # FALSE
+length(f.Tissue_Counts) == length(Filter(function(x) dim(x)[2] > 2, f.Tissue_Counts)) # FALSE
+length(m.Tissue_Counts) == length(Filter(function(x) dim(x)[2] > 2, m.Tissue_Counts)) # FALSE
 
 # Remove individuals who do not have count data
 # i.e. only have 'gene_id' and 'gene_name' cols in df
-Fem_Tissue_Counts <- Fem_Tissue_Counts[sapply(Fem_Tissue_Counts, function(x) dim(x)[2]) > 2] 
-Male_Tissue_Counts <- Male_Tissue_Counts[sapply(Male_Tissue_Counts, function(x) dim(x)[2]) > 2] 
+f.Tissue_Counts <- f.Tissue_Counts[sapply(f.Tissue_Counts, function(x) dim(x)[2]) > 2] 
+m.Tissue_Counts <- m.Tissue_Counts[sapply(m.Tissue_Counts, function(x) dim(x)[2]) > 2] 
 
 # Check for any empty data frames
-length(Fem_Tissue_Counts) == length(Filter(function(x) dim(x)[2] > 2, Fem_Tissue_Counts)) # TRUE
-length(Male_Tissue_Counts) == length(Filter(function(x) dim(x)[2] > 2, Male_Tissue_Counts)) # TRUE
+length(f.Tissue_Counts) == length(Filter(function(x) dim(x)[2] > 2, f.Tissue_Counts)) # TRUE
+length(m.Tissue_Counts) == length(Filter(function(x) dim(x)[2] > 2, m.Tissue_Counts)) # TRUE
 
 # Remove sample replicates
-Fem_Tissue_Counts <- lapply(Fem_Tissue_Counts, function(x){
+f.Tissue_Counts <- lapply(f.Tissue_Counts, function(x){
   x[, !(names(x) %in% Sample_Replicates)]
 })
 
-Male_Tissue_Counts <- lapply(Male_Tissue_Counts, function(x){
+m.Tissue_Counts <- lapply(m.Tissue_Counts, function(x){
   x[, !(names(x) %in% Sample_Replicates)]
 })
 
 # Get subset of just X chm genes from each data frame in list
 # Will not include XIST
-Fem_Tissue_XCounts <- lapply(Fem_Tissue_Counts, function(x) {
+f.Tissue_XCounts <- lapply(f.Tissue_Counts, function(x) {
   filter(x, gene_id %in% X_Genes$gene_id)
 })
 
-Male_Tissue_XCounts <- lapply(Male_Tissue_Counts, function(x) {
+m.Tissue_XCounts <- lapply(m.Tissue_Counts, function(x) {
   filter(x, gene_id %in% X_Genes$gene_id)
 })
 
 # Check for missing values
-sapply(Fem_Tissue_XCounts, function(x) sum(is.na(x)))
-sapply(Male_Tissue_XCounts, function(x) sum(is.na(x)))
+sapply(f.Tissue_XCounts, function(x) sum(is.na(x)))
+sapply(m.Tissue_XCounts, function(x) sum(is.na(x)))
 
 # Get the mean values of the X chm genes
-Fem_MeanX_Tissue_Counts <- lapply(Fem_Tissue_XCounts, function(x){
+f.MeanX_Tissue_Counts <- lapply(f.Tissue_XCounts, function(x){
   colMeans(x[sapply(x, is.numeric)]) 
 })
 
-Male_MeanX_Tissue_Counts <- lapply(Male_Tissue_XCounts, function(x){
+m.MeanX_Tissue_Counts <- lapply(m.Tissue_XCounts, function(x){
   colMeans(x[sapply(x, is.numeric)]) 
 })
 
 # Get XIST values from each data frame
-Fem_XIST_Tissue_Counts <- lapply(Fem_Tissue_Counts, function(x) {
+f.XIST_Tissue_Counts <- lapply(f.Tissue_Counts, function(x) {
   as.numeric(x[which(x['gene_name'] == 'XIST'),][,-c(1:2)]) # drop gene_id and gene_name cols
 })
 
-Male_XIST_Tissue_Counts <- lapply(Male_Tissue_Counts, function(x) {
+m.XIST_Tissue_Counts <- lapply(m.Tissue_Counts, function(x) {
   as.numeric(x[which(x['gene_name'] == 'XIST'),][,-c(1:2)]) # drop gene_id and gene_name cols
 })
+
+# Sanity check
+# Check that all the samples are present in both lists of dfs
+length(f.XIST_Tissue_Counts) == length(f.MeanX_Tissue_Counts) # TRUE
+length(m.XIST_Tissue_Counts) == length(m.MeanX_Tissue_Counts) # TRUE
+
+# How many tissue types are there per sex?
+length(f.XIST_Tissue_Counts) # 51
+length(m.XIST_Tissue_Counts) # 47
+
+# Are all the same individuals listed in both lists?
+all(names(f.XIST_Tissue_Counts) == names(f.MeanX_Tissue_Counts)) # TRUE
+all(names(m.XIST_Tissue_Counts) == names(m.MeanX_Tissue_Counts)) # TRUE
+
+# Are they listed in the same order?
+identical(names(f.XIST_Tissue_Counts), names(f.MeanX_Tissue_Counts)) # TRUE
+identical(names(m.XIST_Tissue_Counts), names(m.MeanX_Tissue_Counts)) # TRUE
 
 # ________________________________________________________________________________________________________
 # Table 1; Column 1:
 # Correlate expression from XIST with X chromosome expression within a person across all of their tissues.
 # ________________________________________________________________________________________________________
-
-# Check that all the samples are present in both lists of dfs
-length(Fem_XIST_Tissue_Counts) == length(Fem_MeanX_Tissue_Counts) # TRUE
-length(Male_XIST_Tissue_Counts) == length(Male_MeanX_Tissue_Counts) # TRUE
-
-# How many tissue types are there per sex?
-length(Fem_XIST_Tissue_Counts) # 51
-length(Male_XIST_Tissue_Counts) # 47
-
-# Are all the same individuals listed in both lists?
-all(names(Fem_XIST_Tissue_Counts) == names(Fem_MeanX_Tissue_Counts)) # TRUE
-all(names(Male_XIST_Tissue_Counts) == names(Male_MeanX_Tissue_Counts)) # TRUE
-
-# Are they listed in the same order?
-identical(names(Fem_XIST_Tissue_Counts), names(Fem_MeanX_Tissue_Counts)) # TRUE
-identical(names(Male_XIST_Tissue_Counts), names(Male_MeanX_Tissue_Counts)) # TRUE
-
 # Function to combine vectors into df
 Combine_Vectors <- function(a, b){
   data.frame(a, b)
 }
 
 # Combine lists of named character vectors to a list of dataframes
-Fem_MeanX_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_MeanX_Vs_XIST[[i]] <- Combine_Vectors(Fem_MeanX_Tissue_Counts[[i]], Fem_XIST_Tissue_Counts[[i]])
+f.MeanX_Vs_XIST <- list()
+for (i in 1:length(f.XIST_Tissue_Counts)){
+  f.MeanX_Vs_XIST[[i]] <- Combine_Vectors(f.MeanX_Tissue_Counts[[i]], f.XIST_Tissue_Counts[[i]])
 }
-names(Fem_MeanX_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
+names(f.MeanX_Vs_XIST) <- names(f.XIST_Tissue_Counts)
 
-Male_MeanX_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_MeanX_Vs_XIST[[i]] <- Combine_Vectors(Male_MeanX_Tissue_Counts[[i]], Male_XIST_Tissue_Counts[[i]])
+m.MeanX_Vs_XIST <- list()
+for (i in 1:length(m.XIST_Tissue_Counts)){
+  m.MeanX_Vs_XIST[[i]] <- Combine_Vectors(m.MeanX_Tissue_Counts[[i]], m.XIST_Tissue_Counts[[i]])
 }
-names(Male_MeanX_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
+names(m.MeanX_Vs_XIST) <- names(m.XIST_Tissue_Counts)
 
 # Rename col names in each df
-Fem_MeanX_Vs_XIST <- lapply(Fem_MeanX_Vs_XIST, setNames, c("MeanX", "XIST")) 
-
-Male_MeanX_Vs_XIST <- lapply(Male_MeanX_Vs_XIST, setNames, c("MeanX", "XIST")) 
+f.MeanX_Vs_XIST <- lapply(f.MeanX_Vs_XIST, setNames, c("MeanX", "XIST")) 
+m.MeanX_Vs_XIST <- lapply(m.MeanX_Vs_XIST, setNames, c("MeanX", "XIST")) 
 
 # Check for any missing values
-sapply(Fem_MeanX_Vs_XIST, function(x) sum(is.na(x)))
-
-sapply(Male_MeanX_Vs_XIST, function(x) sum(is.na(x)))
+sapply(f.MeanX_Vs_XIST, function(x) sum(is.na(x)))
+sapply(m.MeanX_Vs_XIST, function(x) sum(is.na(x)))
 
 # Apply lm to each df in list
-lm_Fem_MeanX_XIST <- lapply(Fem_MeanX_Vs_XIST, function(x) {
+lm_f.MeanX_XIST <- lapply(f.MeanX_Vs_XIST, function(x) {
   z <- lm(MeanX ~ XIST, data = x, na.action = na.omit)
   return(z)
 })
 
-lm_Male_MeanX_XIST <- lapply(Male_MeanX_Vs_XIST, function(x) {
+lm_m.MeanX_XIST <- lapply(m.MeanX_Vs_XIST, function(x) {
   z <- lm(MeanX ~ XIST, data = x, na.action = na.omit)
   return(z)
 })
 
 # Function to extract r squared values
-R_Squared <- function(lm){ # expecting object of class 'lm'
+Regression_Res <- function(lm){ # expecting object of class 'lm'
   sum. <- summary(lm)
   r.2 <- sum.$r.squared
-  r.2
+  p. <- summary(lm)$fstatistic
+  p.val <- pf(p.[1], p.[2], p.[3], lower.tail=FALSE, log.p=FALSE) #pf: F distribution ; arg 2 and 3 are the degrees of freedom 
+  attributes(p.val) <- NULL
+  res <- data.frame(p_val=p.val, r_2=r.2)
+  return(res)
 }
 
 # Apply function to list of dfs
-Res_Fem_MeanX_XIST <- lapply(lm_Fem_MeanX_XIST, R_Squared)
-Res_Male_MeanX_XIST <- lapply(lm_Male_MeanX_XIST, R_Squared)
+Res_f.MeanX_XIST <- lapply(lm_f.MeanX_XIST, Regression_Res)
+Res_m.MeanX_XIST <- lapply(lm_m.MeanX_XIST, Regression_Res)
 
 # Make table summarizing results
-Fem_MeanX_XIST.df <- as.data.frame(do.call(rbind, Res_Fem_MeanX_XIST))
-Male_MeanX_XIST.df <- as.data.frame(do.call(rbind, Res_Male_MeanX_XIST))
+f.MeanX_XIST.df <- as.data.frame(do.call(rbind, Res_f.MeanX_XIST))
+m.MeanX_XIST.df <- as.data.frame(do.call(rbind, Res_m.MeanX_XIST))
 
 # Add column with sex
 # Sample_Sex <- sapply(rownames(MeanX_XIST.df), function(x) {
-#   if (x %in% Female_IDs > 0) {"Female"}
+#   if (x %in% Fem.IDs > 0) {"Female"}
 #   else {"Male"}
 # }, simplify = TRUE)
 # 
@@ -298,13 +300,8 @@ Male_MeanX_XIST.df <- as.data.frame(do.call(rbind, Res_Male_MeanX_XIST))
 
 
 # Label columns
-colnames(Fem_MeanX_XIST.df) <- c("R2_MeanX")
-colnames(Male_MeanX_XIST.df) <- c("R2_MeanX")
-
-# Average R^2 for females vs males (probs not that informative)
-Fem_MeanX_XIST.df %>% summarise(mean = mean(R2_MeanX)) 
-Male_MeanX_XIST.df %>% summarise(mean = mean(R2_MeanX))
-
+colnames(f.MeanX_XIST.df) <- c("p_Value", "R2_MeanX")
+colnames(m.MeanX_XIST.df) <- c("p_Value","R2_MeanX")
 
 # ________________________________________________________________________________________________________
 # Table 1; Columns 2-6
@@ -315,245 +312,129 @@ Male_MeanX_XIST.df %>% summarise(mean = mean(R2_MeanX))
 # "Silenced_In_Both", "Silenced_In_Tukiainen", "Silenced_In_Balaton", "Silenced_In_At_Least_One", 
 # "Immune_Genes_Silenced_In_At_Least_One"
 
-# Subset list of genes silenced in both studies from each df in list 
-# Silenced in both 
-Fem_Both_Silenced <- lapply(Fem_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Silenced_In_Both)
-})
-Male_Both_Silenced <- lapply(Male_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Silenced_In_Both)
-})
+# Subset list of genes silenced in both studies from each df in list by sex
+Filter <- function(x, y){
+  x <- filter(x, gene_name %in% Gene_Lst[[y]])
+  return(x)
+}
 
-#  Silenced in Tukainen
-Fem_Tuk_Silenced <- lapply(Fem_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Silenced_In_Tukiainen)
-})
-Male_Tuk_Silenced <- lapply(Male_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Silenced_In_Tukiainen)
-})
+f.Both_Silenced <- Map(Filter, x=f.Tissue_Counts, y='Silenced_In_Both')
+f.Tuk_Silenced <- Map(Filter, x=f.Tissue_Counts, y='Silenced_In_Tukiainen')
+f.Bal_Silenced <- Map(Filter, x=f.Tissue_Counts, y='Silenced_In_Balaton')
+f.One_Silenced <- Map(Filter, x=f.Tissue_Counts, y='Silenced_In_At_Least_One')
+f.Immune_Silenced <- Map(Filter, x=f.Tissue_Counts, y='Immune_Genes_Silenced_In_At_Least_One')
 
-# Silenced in Balaton
-Fem_Bal_Silenced <- lapply(Fem_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Silenced_In_Balaton)
-})
-Male_Bal_Silenced <- lapply(Male_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Silenced_In_Balaton)
-})
-
-# Silenced in at least one study
-Fem_One_Silenced <- lapply(Fem_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Silenced_In_At_Least_One)
-})
-Male_One_Silenced <- lapply(Male_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Silenced_In_At_Least_One)
-})
-
-# Silenced immune genes
-Fem_Immune_Silenced <- lapply(Fem_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Immune_Genes_Silenced_In_At_Least_One)
-})
-Male_Immune_Silenced <- lapply(Male_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Immune_Genes_Silenced_In_At_Least_One)
-})
+m.Both_Silenced <- Map(Filter, x=m.Tissue_Counts, y='Silenced_In_Both')
+m.Tuk_Silenced <- Map(Filter, x=m.Tissue_Counts, y='Silenced_In_Tukiainan')
+m.Bal_Silenced <- Map(Filter, x=m.Tissue_Counts, y='Silenced_In_Balaton')
+m.One_Silenced <- Map(Filter, x=m.Tissue_Counts, y='Silenced_In_At_Least_One')
+m.Immune_Silenced <- Map(Filter, x=m.Tissue_Counts, y='Immune_Genes_Silenced_In_At_Least_One')
 
 # Get the mean values of putatively silenced X chm genes
-Fem_Mean_Silenced <- lapply(Fem_Both_Silenced, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-Male_Mean_Silenced <- lapply(Male_Both_Silenced, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
+Mean_Val <- function(x){
+  res <- colMeans(x[sapply(x, is.numeric)]) 
+  return(res)
+}
 
-Fem_Tuk_Mean_Silenced <- lapply(Fem_Tuk_Silenced, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-Male_Tuk_Mean_Silenced <- lapply(Male_Tuk_Silenced, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
+f.Mean_Silenced <- lapply(f.Both_Silenced, Mean_Val)
+f.Tuk_Mean_Silenced <- lapply(f.Both_Silenced, Mean_Val)
+f.Bal_Mean_Silenced <- lapply(f.Bal_Silenced, Mean_Val)
+f.One_Mean_Silenced <- lapply(f.One_Silenced, Mean_Val)
+f.Immune_Mean_Silenced <- lapply(f.Immune_Silenced, Mean_Val)
 
-Fem_Bal_Mean_Silenced <- lapply(Fem_Bal_Silenced, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-Male_Bal_Mean_Silenced <- lapply(Male_Bal_Silenced, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-
-Fem_One_Mean_Silenced <- lapply(Fem_One_Silenced, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-Male_One_Mean_Silenced <- lapply(Male_One_Silenced, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-
-Fem_Immune_Mean_Silenced <- lapply(Fem_Immune_Silenced, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-Male_Immune_Mean_Silenced <- lapply(Male_Immune_Silenced, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
+m.Mean_Silenced <- lapply(m.Both_Silenced, Mean_Val)
+m.Tuk_Mean_Silenced <- lapply(m.Both_Silenced, Mean_Val)
+m.Bal_Mean_Silenced <- lapply(m.Bal_Silenced, Mean_Val)
+m.One_Mean_Silenced <- lapply(m.One_Silenced, Mean_Val)
+m.Immune_Mean_Silenced <- lapply(m.Immune_Silenced, Mean_Val)
 
 # Combine list of mean value of silenced genes and XIST expression
-Fem_Silenced_Mean_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_Silenced_Mean_Vs_XIST[[i]] <- Combine_Vectors(Fem_Mean_Silenced[[i]], Fem_XIST_Tissue_Counts[[i]])
+Combine_Lsts <- function(x, y, z){
+  y <- list()
+  for (i in 1:length(z)){
+    y[[i]] <- Combine_Vectors(x[[i]], z[[i]])
+  }
+  names(y) <- names(z)
+  return(y)
 }
-names(Fem_Silenced_Mean_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
 
-Male_Silenced_Mean_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_Silenced_Mean_Vs_XIST[[i]] <- Combine_Vectors(Male_Mean_Silenced[[i]], Male_XIST_Tissue_Counts[[i]])
-}
-names(Male_Silenced_Mean_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
+f.Silenced_Mean_Vs_XIST <- Combine_Lsts(x=f.Mean_Silenced, y='f.Silenced_Mean_Vs_XIST', z=f.XIST_Tissue_Counts)
+f.Tuk_Silenced_Mean_Vs_XIST <- Combine_Lsts(x=f.Tuk_Mean_Silenced, y='f.Tuk_Silenced_Mean_Vs_XIST', z=f.XIST_Tissue_Counts)
+f.Bal_Silenced_Mean_Vs_XIST <- Combine_Lsts(x=f.Bal_Mean_Silenced, y='f.Bal_Silenced_Mean_Vs_XIST', z=f.XIST_Tissue_Counts)
+f.One_Silenced_Mean_Vs_XIST <- Combine_Lsts(x=f.One_Mean_Silenced, y='f.One_Silenced_Mean_Vs_XIST', z=f.XIST_Tissue_Counts)
+f.Immune_Silenced_Mean_Vs_XIST <- Combine_Lsts(x=f.Immune_Mean_Silenced, y='f.Immune_Silenced_Mean_Vs_XIST', z=f.XIST_Tissue_Counts)
 
-
-Fem_Tuk_Silenced_Mean_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_Tuk_Silenced_Mean_Vs_XIST[[i]] <- Combine_Vectors(Fem_Tuk_Mean_Silenced[[i]], Fem_XIST_Tissue_Counts[[i]])
-}
-names(Fem_Tuk_Silenced_Mean_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
-
-Male_Tuk_Silenced_Mean_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_Tuk_Silenced_Mean_Vs_XIST[[i]] <- Combine_Vectors(Male_Tuk_Mean_Silenced[[i]], Male_XIST_Tissue_Counts[[i]])
-}
-names(Male_Tuk_Silenced_Mean_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
-
-
-Fem_Bal_Silenced_Mean_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_Bal_Silenced_Mean_Vs_XIST[[i]] <- Combine_Vectors(Fem_Bal_Mean_Silenced[[i]], Fem_XIST_Tissue_Counts[[i]])
-}
-names(Fem_Bal_Silenced_Mean_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
-
-Male_Bal_Silenced_Mean_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_Bal_Silenced_Mean_Vs_XIST[[i]] <- Combine_Vectors(Male_Bal_Mean_Silenced[[i]], Male_XIST_Tissue_Counts[[i]])
-}
-names(Male_Bal_Silenced_Mean_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
-
-
-Fem_One_Silenced_Mean_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_One_Silenced_Mean_Vs_XIST[[i]] <- Combine_Vectors(Fem_One_Mean_Silenced[[i]], Fem_XIST_Tissue_Counts[[i]])
-}
-names(Fem_One_Silenced_Mean_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
-
-Male_One_Silenced_Mean_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_One_Silenced_Mean_Vs_XIST[[i]] <- Combine_Vectors(Male_One_Mean_Silenced[[i]], Male_XIST_Tissue_Counts[[i]])
-}
-names(Male_One_Silenced_Mean_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
-
-
-Fem_Immune_Silenced_Mean_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_Immune_Silenced_Mean_Vs_XIST[[i]] <- Combine_Vectors(Fem_Immune_Mean_Silenced[[i]], Fem_XIST_Tissue_Counts[[i]])
-}
-names(Fem_Immune_Silenced_Mean_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
-
-Male_Immune_Silenced_Mean_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_Immune_Silenced_Mean_Vs_XIST[[i]] <- Combine_Vectors(Male_Immune_Mean_Silenced[[i]], Male_XIST_Tissue_Counts[[i]])
-}
-names(Male_Immune_Silenced_Mean_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
+m.Silenced_Mean_Vs_XIST <- Combine_Lsts(x=m.Mean_Silenced, y='m.Silenced_Mean_Vs_XIST', z=m.XIST_Tissue_Counts)
+m.Tuk_Silenced_Mean_Vs_XIST <- Combine_Lsts(x=m.Tuk_Mean_Silenced, y='m.Tuk_Silenced_Mean_Vs_XIST', z=m.XIST_Tissue_Counts)
+m.Bal_Silenced_Mean_Vs_XIST <- Combine_Lsts(x=m.Bal_Mean_Silenced, y='m.Bal_Silenced_Mean_Vs_XIST', z=m.XIST_Tissue_Counts)
+m.One_Silenced_Mean_Vs_XIST <- Combine_Lsts(x=m.One_Mean_Silenced, y='m.One_Silenced_Mean_Vs_XIST', z=m.XIST_Tissue_Counts)
+m.Immune_Silenced_Mean_Vs_XIST <- Combine_Lsts(x=m.Immune_Mean_Silenced, y='m.Immune_Silenced_Mean_Vs_XIST', z=m.XIST_Tissue_Counts)
 
 # Rename columns in each df
-Fem_Silenced_Mean_Vs_XIST <- lapply(Fem_Silenced_Mean_Vs_XIST, setNames, c("Mean_Silenced", "XIST")) 
-Male_Silenced_Mean_Vs_XIST <- lapply(Male_Silenced_Mean_Vs_XIST, setNames, c("Mean_Silenced", "XIST")) 
+Rename_Col <- function(x){
+  x <- setNames(x, c("Mean_Silenced", "XIST"))
+}
 
-Fem_Tuk_Silenced_Mean_Vs_XIST <- lapply(Fem_Tuk_Silenced_Mean_Vs_XIST, setNames, c("Tuk_Mean_Silenced", "XIST")) 
-Male_Tuk_Silenced_Mean_Vs_XIST <- lapply(Male_Tuk_Silenced_Mean_Vs_XIST, setNames, c("Tuk_Mean_Silenced", "XIST")) 
+f.Silenced_Mean_Vs_XIST <- lapply(f.Silenced_Mean_Vs_XIST, Rename_Col)
+f.Tuk_Silenced_Mean_Vs_XIST <- lapply(f.Tuk_Silenced_Mean_Vs_XIST, Rename_Col)
+f.Bal_Silenced_Mean_Vs_XIST <- lapply(f.Bal_Silenced_Mean_Vs_XIST, Rename_Col)
+f.One_Silenced_Mean_Vs_XIST <- lapply(f.One_Silenced_Mean_Vs_XIST, Rename_Col)
+f.Immune_Silenced_Mean_Vs_XIST <- lapply(f.Immune_Silenced_Mean_Vs_XIST, Rename_Col)
 
-Fem_Bal_Silenced_Mean_Vs_XIST <- lapply(Fem_Bal_Silenced_Mean_Vs_XIST, setNames, c("Bal_Mean_Silenced", "XIST")) 
-Male_Bal_Silenced_Mean_Vs_XIST <- lapply(Male_Bal_Silenced_Mean_Vs_XIST, setNames, c("Bal_Mean_Silenced", "XIST")) 
-
-Fem_One_Silenced_Mean_Vs_XIST <- lapply(Fem_One_Silenced_Mean_Vs_XIST, setNames, c("One_Mean_Silenced", "XIST")) 
-Male_One_Silenced_Mean_Vs_XIST <- lapply(Male_One_Silenced_Mean_Vs_XIST, setNames, c("One_Mean_Silenced", "XIST")) 
-
-Fem_Immune_Silenced_Mean_Vs_XIST <- lapply(Fem_Immune_Silenced_Mean_Vs_XIST, setNames, c("Immune_Mean_Silenced", "XIST"))
-Male_Immune_Silenced_Mean_Vs_XIST <- lapply(Male_Immune_Silenced_Mean_Vs_XIST, setNames, c("Immune_Mean_Silenced", "XIST"))
+m.Silenced_Mean_Vs_XIST <- lapply(m.Silenced_Mean_Vs_XIST, Rename_Col)
+m.Tuk_Silenced_Mean_Vs_XIST <- lapply(m.Tuk_Silenced_Mean_Vs_XIST, Rename_Col)
+m.Bal_Silenced_Mean_Vs_XIST <- lapply(m.Bal_Silenced_Mean_Vs_XIST, Rename_Col)
+m.One_Silenced_Mean_Vs_XIST <- lapply(m.One_Silenced_Mean_Vs_XIST, Rename_Col)
+m.Immune_Silenced_Mean_Vs_XIST <- lapply(m.Immune_Silenced_Mean_Vs_XIST, Rename_Col)
 
 # Apply lm to each df in list
-Fem_lm_Silenced_XIST <- lapply(Fem_Silenced_Mean_Vs_XIST, function(x) {
+Linear_Model <- function(x) {
   z <- lm(Mean_Silenced ~ XIST, data = x, na.action = na.omit)
   return(z)
-})
-Male_lm_Silenced_XIST <- lapply(Male_Silenced_Mean_Vs_XIST, function(x) {
-  z <- lm(Mean_Silenced ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
+}
 
+f.lm_Silenced_XIST <- lapply(f.Silenced_Mean_Vs_XIST, Linear_Model)
+f.lm_Tuk_Silenced_XIST <- lapply(f.Tuk_Silenced_Mean_Vs_XIST, Linear_Model)
+f.lm_Bal_Silenced_XIST <- lapply(f.Bal_Silenced_Mean_Vs_XIST, Linear_Model)
+f.lm_One_Silenced_XIST <- lapply(f.One_Silenced_Mean_Vs_XIST, Linear_Model)
+f.lm_Immune_Silenced_XIST <- lapply(f.Immune_Silenced_Mean_Vs_XIST, Linear_Model)
 
-Fem_lm_Tuk_Silenced_XIST <- lapply(Fem_Tuk_Silenced_Mean_Vs_XIST, function(x) {
-  z <- lm(Tuk_Mean_Silenced ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-Male_lm_Tuk_Silenced_XIST <- lapply(Male_Tuk_Silenced_Mean_Vs_XIST, function(x) {
-  z <- lm(Tuk_Mean_Silenced ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-
-
-Fem_lm_Bal_Silenced_XIST <- lapply(Fem_Bal_Silenced_Mean_Vs_XIST, function(x) {
-  z <- lm(Bal_Mean_Silenced ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-Male_lm_Bal_Silenced_XIST <- lapply(Male_Bal_Silenced_Mean_Vs_XIST, function(x) {
-  z <- lm(Bal_Mean_Silenced ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-
-
-Fem_lm_One_Silenced_XIST <- lapply(Fem_One_Silenced_Mean_Vs_XIST, function(x) {
-  z <- lm(One_Mean_Silenced ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-Male_lm_One_Silenced_XIST <- lapply(Male_One_Silenced_Mean_Vs_XIST, function(x) {
-  z <- lm(One_Mean_Silenced ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-
-
-Fem_lm_Immune_Silenced_XIST <- lapply(Fem_Immune_Silenced_Mean_Vs_XIST, function(x) {
-  z <- lm(Immune_Mean_Silenced ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-Male_lm_Immune_Silenced_XIST <- lapply(Male_Immune_Silenced_Mean_Vs_XIST, function(x) {
-  z <- lm(Immune_Mean_Silenced ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
+m.lm_Silenced_XIST <- lapply(m.Silenced_Mean_Vs_XIST, Linear_Model)
+m.lm_Tuk_Silenced_XIST <- lapply(m.Tuk_Silenced_Mean_Vs_XIST, Linear_Model)
+m.lm_Bal_Silenced_XIST <- lapply(m.Bal_Silenced_Mean_Vs_XIST, Linear_Model)
+m.lm_One_Silenced_XIST <- lapply(m.One_Silenced_Mean_Vs_XIST, Linear_Model)
+m.lm_Immune_Silenced_XIST <- lapply(m.Immune_Silenced_Mean_Vs_XIST, Linear_Model)
 
 # Apply function to list of dfs
-Fem_Res_Silenced_XIST <- lapply(Fem_lm_Silenced_XIST, R_Squared)
-Male_Res_Silenced_XIST <- lapply(Male_lm_Silenced_XIST, R_Squared)
+f.Res_Silenced_XIST <- lapply(f.lm_Silenced_XIST, Regression_Res)
+f.Tuk_Res_Silenced_XIST <- lapply(f.lm_Tuk_Silenced_XIST, Regression_Res)
+f.Bal_Res_Silenced_XIST <- lapply(f.lm_Bal_Silenced_XIST, Regression_Res)
+f.One_Res_Silenced_XIST <- lapply(f.lm_One_Silenced_XIST, Regression_Res)
+f.Immune_Res_Silenced_XIST <- lapply(f.lm_Immune_Silenced_XIST, Regression_Res)
 
-Fem_Tuk_Res_Silenced_XIST <- lapply(Fem_lm_Tuk_Silenced_XIST, R_Squared)
-Male_Tuk_Res_Silenced_XIST <- lapply(Male_lm_Tuk_Silenced_XIST, R_Squared)
-
-Fem_Bal_Res_Silenced_XIST <- lapply(Fem_lm_Bal_Silenced_XIST, R_Squared)
-Male_Bal_Res_Silenced_XIST <- lapply(Male_lm_Bal_Silenced_XIST, R_Squared)
-
-Fem_One_Res_Silenced_XIST <- lapply(Fem_lm_One_Silenced_XIST, R_Squared)
-Male_One_Res_Silenced_XIST <- lapply(Male_lm_One_Silenced_XIST, R_Squared)
-
-Fem_Immune_Res_Silenced_XIST <- lapply(Fem_lm_Immune_Silenced_XIST, R_Squared)
-Male_Immune_Res_Silenced_XIST <- lapply(Male_lm_Immune_Silenced_XIST, R_Squared)
+m.Res_Silenced_XIST <- lapply(m.lm_Silenced_XIST, Regression_Res)
+m.Tuk_Res_Silenced_XIST <- lapply(m.lm_Tuk_Silenced_XIST, Regression_Res)
+m.Bal_Res_Silenced_XIST <- lapply(m.lm_Bal_Silenced_XIST, Regression_Res)
+m.One_Res_Silenced_XIST <- lapply(m.lm_One_Silenced_XIST, Regression_Res)
+m.Immune_Res_Silenced_XIST <- lapply(m.lm_Immune_Silenced_XIST, Regression_Res)
 
 # Add vector as column to df
-Fem_MeanX_XIST.df$Silenced_Mean <- unlist(Fem_Res_Silenced_XIST)
-Male_MeanX_XIST.df$Silenced_Mean <- unlist(Male_Res_Silenced_XIST)
+Unlist_Col <- function(x){
+  res <- unlist(x$r_2)
+  return(res)
+}
 
-Fem_MeanX_XIST.df$Tuk_Silenced_Mean <- unlist(Fem_Tuk_Res_Silenced_XIST)
-Male_MeanX_XIST.df$Tuk_Silenced_Mean <- unlist(Male_Tuk_Res_Silenced_XIST)
+f.MeanX_XIST.df$R2_Silenced_Mean <- lapply(f.Res_Silenced_XIST, Unlist_Col)
+f.MeanX_XIST.df$R2_Tuk_Silenced_Mean <- lapply(f.Tuk_Res_Silenced_XIST, Unlist_Col)
+f.MeanX_XIST.df$R2_Bal_Silenced_Mean <- lapply(f.Bal_Res_Silenced_XIST, Unlist_Col)
+f.MeanX_XIST.df$R2_One_Silenced_Mean <- lapply(f.One_Res_Silenced_XIST, Unlist_Col)
+f.MeanX_XIST.df$R2_Immune_Silenced_Mean <- lapply(f.Immune_Res_Silenced_XIST, Unlist_Col)
 
-Fem_MeanX_XIST.df$Bal_Silenced_Mean <- unlist(Fem_Bal_Res_Silenced_XIST)
-Male_MeanX_XIST.df$Bal_Silenced_Mean <- unlist(Male_Bal_Res_Silenced_XIST)
-
-Fem_MeanX_XIST.df$One_Silenced_Mean <- unlist(Fem_One_Res_Silenced_XIST)
-Male_MeanX_XIST.df$One_Silenced_Mean <- unlist(Male_One_Res_Silenced_XIST)
-
-Fem_MeanX_XIST.df$Immune_Silenced_Mean <- unlist(Fem_Immune_Res_Silenced_XIST)
-Male_MeanX_XIST.df$Immune_Silenced_Mean <- unlist(Male_Immune_Res_Silenced_XIST)
+m.MeanX_XIST.df$R2_Silenced_Mean <- lapply(m.Res_Silenced_XIST, Unlist_Col)
+m.MeanX_XIST.df$R2_Tuk_Silenced_Mean <- lapply(m.Tuk_Res_Silenced_XIST, Unlist_Col)
+m.MeanX_XIST.df$R2_Bal_Silenced_Mean <- lapply(m.Bal_Res_Silenced_XIST, Unlist_Col)
+m.MeanX_XIST.df$R2_One_Silenced_Mean <- lapply(m.One_Res_Silenced_XIST, Unlist_Col)
+m.MeanX_XIST.df$R2_Immune_Silenced_Mean <- lapply(m.Immune_Res_Silenced_XIST, Unlist_Col)
 
 # ________________________________________________________________________________________________________
 # Table 1; Columns 7-10
@@ -564,190 +445,81 @@ Male_MeanX_XIST.df$Immune_Silenced_Mean <- unlist(Male_Immune_Res_Silenced_XIST)
 # "Variable_In_At_Least_One", "Variable_In_Tukiainen", "Variable_In_Balaton", "Immune_Gene_Variable_In_At_Least_One"
 
 # Subset list of genes variably silenced from each df in list 
-Fem_One_Variable <- lapply(Fem_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Variable_In_At_Least_One)
-})
-Male_One_Variable <- lapply(Male_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Variable_In_At_Least_One)
-})
+f.One_Variable <- Map(Filter, x=f.Tissue_Counts, y='Variable_In_At_Least_One')
+f.Tuk_Variable <- Map(Filter, x=f.Tissue_Counts, y='Variable_In_Tukiainen')
+f.Bal_Variable <- Map(Filter, x=f.Tissue_Counts, y='Variable_In_Balaton')
+f.Immune_Variable <- Map(Filter, x=f.Tissue_Counts, y='Immune_Gene_Variable_In_At_Least_One')
 
-Fem_Tuk_Variable <- lapply(Fem_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Variable_In_Tukiainen)
-})
-Male_Tuk_Variable <- lapply(Male_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Variable_In_Tukiainen)
-})
-
-Fem_Bal_Variable <- lapply(Fem_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Variable_In_Balaton)
-})
-Male_Bal_Variable <- lapply(Male_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Variable_In_Balaton)
-})
-
-Fem_Immune_Variable <- lapply(Fem_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Immune_Gene_Variable_In_At_Least_One)
-})
-Male_Immune_Variable <- lapply(Male_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Immune_Gene_Variable_In_At_Least_One)
-})
+m.One_Variable <- Map(Filter, x=m.Tissue_Counts, y='Variable_In_At_Least_One')
+m.Tuk_Variable <- Map(Filter, x=m.Tissue_Counts, y='Variable_In_Tukiainen')
+m.Bal_Variable <- Map(Filter, x=m.Tissue_Counts, y='Variable_In_Balaton')
+m.Immune_Variable <- Map(Filter, x=m.Tissue_Counts, y='Immune_Gene_Variable_In_At_Least_One')
 
 # Get the mean values of putatively variably silenced X chm genes
-Fem_One_Mean_Variable <- lapply(Fem_One_Variable, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-Male_One_Mean_Variable <- lapply(Male_One_Variable, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
+f.One_Mean_Variable <- lapply(f.One_Variable, Mean_Val)
+f.Tuk_Mean_Variable <- lapply(f.Tuk_Variable, Mean_Val)
+f.Bal_Mean_Variable <- lapply(f.Bal_Variable, Mean_Val)
+f.Immune_Mean_Variable <- lapply(f.Immune_Variable, Mean_Val)
 
-Fem_Tuk_Mean_Variable <- lapply(Fem_Tuk_Variable, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-Male_Tuk_Mean_Variable <- lapply(Male_Tuk_Variable, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-
-Fem_Bal_Mean_Variable <- lapply(Fem_Bal_Variable, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-Male_Bal_Mean_Variable <- lapply(Male_Bal_Variable, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-
-Fem_Immune_Mean_Variable <- lapply(Fem_Immune_Variable, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-Male_Immune_Mean_Variable <- lapply(Male_Immune_Variable, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
+m.One_Mean_Variable <- lapply(m.One_Variable, Mean_Val)
+m.Tuk_Mean_Variable <- lapply(m.Tuk_Variable, Mean_Val)
+m.Bal_Mean_Variable <- lapply(m.Bal_Variable, Mean_Val)
+m.Immune_Mean_Variable <- lapply(m.Immune_Variable, Mean_Val)
 
 # Combine list of mean value of variably silenced genes and XIST expression
-Fem_One_Mean_Variable_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_One_Mean_Variable_Vs_XIST[[i]] <- Combine_Vectors(Fem_One_Mean_Variable[[i]], Fem_XIST_Tissue_Counts[[i]])
-}
-names(Fem_One_Mean_Variable_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
+f.One_Mean_Variable_Vs_XIST <- Combine_Lsts(x=f.One_Mean_Variable, y='f.One_Mean_Variable_Vs_XIST', z=f.XIST_Tissue_Counts)
+f.Tuk_Mean_Variable_Vs_XIST <- Combine_Lsts(x=f.Tuk_Mean_Variable, y='f.Tuk_Mean_Variable_Vs_XIST', z=f.XIST_Tissue_Counts)
+f.Bal_Mean_Variable_Vs_XIST <- Combine_Lsts(x=f.Bal_Mean_Variable, y='f.Bal_Mean_Variable_Vs_XIST', z=f.XIST_Tissue_Counts)
+f.Immune_Mean_Variable_Vs_XIST <- Combine_Lsts(x=f.Immune_Mean_Variable, y='f.Immune_Mean_Variable_Vs_XIST', z=f.XIST_Tissue_Counts)
 
-Male_One_Mean_Variable_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_One_Mean_Variable_Vs_XIST[[i]] <- Combine_Vectors(Male_One_Mean_Variable[[i]], Male_XIST_Tissue_Counts[[i]])
-}
-names(Male_One_Mean_Variable_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
-
-
-Fem_Tuk_Mean_Variable_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_Tuk_Mean_Variable_Vs_XIST[[i]] <- Combine_Vectors(Fem_Tuk_Mean_Variable[[i]], Fem_XIST_Tissue_Counts[[i]])
-}
-names(Fem_Tuk_Mean_Variable_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
-
-Male_Tuk_Mean_Variable_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_Tuk_Mean_Variable_Vs_XIST[[i]] <- Combine_Vectors(Male_Tuk_Mean_Variable[[i]], Male_XIST_Tissue_Counts[[i]])
-}
-names(Male_Tuk_Mean_Variable_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
-
-
-Fem_Bal_Mean_Variable_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_Bal_Mean_Variable_Vs_XIST[[i]] <- Combine_Vectors(Fem_Bal_Mean_Variable[[i]], Fem_XIST_Tissue_Counts[[i]])
-}
-names(Fem_Bal_Mean_Variable_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
-
-Male_Bal_Mean_Variable_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_Bal_Mean_Variable_Vs_XIST[[i]] <- Combine_Vectors(Male_Bal_Mean_Variable[[i]], Male_XIST_Tissue_Counts[[i]])
-}
-names(Male_Bal_Mean_Variable_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
-
-
-Fem_Immune_Mean_Variable_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_Immune_Mean_Variable_Vs_XIST[[i]] <- Combine_Vectors(Fem_Immune_Mean_Variable[[i]], Fem_XIST_Tissue_Counts[[i]])
-}
-names(Fem_Immune_Mean_Variable_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
-
-Male_Immune_Mean_Variable_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_Immune_Mean_Variable_Vs_XIST[[i]] <- Combine_Vectors(Male_Immune_Mean_Variable[[i]], Male_XIST_Tissue_Counts[[i]])
-}
-names(Male_Immune_Mean_Variable_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
+m.One_Mean_Variable_Vs_XIST <- Combine_Lsts(x=m.One_Mean_Variable, y='m.One_Mean_Variable_Vs_XIST', z=m.XIST_Tissue_Counts)
+m.Tuk_Mean_Variable_Vs_XIST <- Combine_Lsts(x=m.Tuk_Mean_Variable, y='m.Tuk_Mean_Variable_Vs_XIST', z=m.XIST_Tissue_Counts)
+m.Bal_Mean_Variable_Vs_XIST <- Combine_Lsts(x=m.Bal_Mean_Variable, y='m.Bal_Mean_Variable_Vs_XIST', z=m.XIST_Tissue_Counts)
+m.Immune_Mean_Variable_Vs_XIST <- Combine_Lsts(x=m.Immune_Mean_Variable, y='m.Immune_Mean_Variable_Vs_XIST', z=m.XIST_Tissue_Counts)
 
 # Rename columns in each df
-Fem_One_Mean_Variable_Vs_XIST <- lapply(Fem_One_Mean_Variable_Vs_XIST, setNames, c("One_Variable_Mean", "XIST")) 
-Male_One_Mean_Variable_Vs_XIST <- lapply(Male_One_Mean_Variable_Vs_XIST, setNames, c("One_Variable_Mean", "XIST"))
+f.One_Mean_Variable_Vs_XIST <- lapply(f.One_Mean_Variable_Vs_XIST, Rename_Col)
+f.Tuk_Mean_Variable_Vs_XIST <- lapply(f.Tuk_Mean_Variable_Vs_XIST, Rename_Col) 
+f.Bal_Mean_Variable_Vs_XIST <- lapply(f.Bal_Mean_Variable_Vs_XIST, Rename_Col)
+f.Immune_Mean_Variable_Vs_XIST <- lapply(f.Immune_Mean_Variable_Vs_XIST, Rename_Col) 
 
-Fem_Tuk_Mean_Variable_Vs_XIST <- lapply(Fem_Tuk_Mean_Variable_Vs_XIST, setNames, c("Tuk_Variable_Mean", "XIST")) 
-Male_Tuk_Mean_Variable_Vs_XIST <- lapply(Male_Tuk_Mean_Variable_Vs_XIST, setNames, c("Tuk_Variable_Mean", "XIST"))
-
-Fem_Bal_Mean_Variable_Vs_XIST <- lapply(Fem_Bal_Mean_Variable_Vs_XIST, setNames, c("Bal_Variable_Mean", "XIST"))
-Male_Bal_Mean_Variable_Vs_XIST <- lapply(Male_Bal_Mean_Variable_Vs_XIST, setNames, c("Bal_Variable_Mean", "XIST"))
-
-Fem_Immune_Mean_Variable_Vs_XIST <- lapply(Fem_Immune_Mean_Variable_Vs_XIST, setNames, c("Immune_Variable_Mean", "XIST")) 
-Male_Immune_Mean_Variable_Vs_XIST <- lapply(Male_Immune_Mean_Variable_Vs_XIST, setNames, c("Immune_Variable_Mean", "XIST"))
+m.One_Mean_Variable_Vs_XIST <- lapply(m.One_Mean_Variable_Vs_XIST, Rename_Col)
+m.Tuk_Mean_Variable_Vs_XIST <- lapply(m.Tuk_Mean_Variable_Vs_XIST, Rename_Col) 
+m.Bal_Mean_Variable_Vs_XIST <- lapply(m.Bal_Mean_Variable_Vs_XIST, Rename_Col)
+m.Immune_Mean_Variable_Vs_XIST <- lapply(m.Immune_Mean_Variable_Vs_XIST, Rename_Col) 
 
 # Apply lm to each df in list
-Fem_lm_One_Variable_XIST <- lapply(Fem_One_Mean_Variable_Vs_XIST, function(x) {
-  z <- lm(One_Variable_Mean ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-Male_lm_One_Variable_XIST <- lapply(Male_One_Mean_Variable_Vs_XIST, function(x) {
-  z <- lm(One_Variable_Mean ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
+f.lm_One_Variable_XIST <- lapply(f.One_Mean_Variable_Vs_XIST, Linear_Model)
+f.lm_Tuk_Variable_XIST <- lapply(f.Tuk_Mean_Variable_Vs_XIST, Linear_Model)  
+f.lm_Bal_Variable_XIST <- lapply(f.Bal_Mean_Variable_Vs_XIST, Linear_Model)  
+f.lm_Immune_Variable_XIST <- lapply(f.Immune_Mean_Variable_Vs_XIST, Linear_Model)  
 
-Fem_lm_Tuk_Variable_XIST <- lapply(Fem_Tuk_Mean_Variable_Vs_XIST, function(x) {
-  z <- lm(Tuk_Variable_Mean ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-Male_lm_Tuk_Variable_XIST <- lapply(Male_Tuk_Mean_Variable_Vs_XIST, function(x) {
-  z <- lm(Tuk_Variable_Mean ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-
-Fem_lm_Bal_Variable_XIST <- lapply(Fem_Bal_Mean_Variable_Vs_XIST, function(x) {
-  z <- lm(Bal_Variable_Mean ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-Male_lm_Bal_Variable_XIST <- lapply(Male_Bal_Mean_Variable_Vs_XIST, function(x) {
-  z <- lm(Bal_Variable_Mean ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-
-Fem_lm_Immune_Variable_XIST <- lapply(Fem_Immune_Mean_Variable_Vs_XIST, function(x) {
-  z <- lm(Immune_Variable_Mean ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-Male_lm_Immune_Variable_XIST <- lapply(Male_Immune_Mean_Variable_Vs_XIST, function(x) {
-  z <- lm(Immune_Variable_Mean ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
+m.lm_One_Variable_XIST <- lapply(m.One_Mean_Variable_Vs_XIST, Linear_Model)
+m.lm_Tuk_Variable_XIST <- lapply(m.Tuk_Mean_Variable_Vs_XIST, Linear_Model)  
+m.lm_Bal_Variable_XIST <- lapply(m.Bal_Mean_Variable_Vs_XIST, Linear_Model)  
+m.lm_Immune_Variable_XIST <- lapply(m.Immune_Mean_Variable_Vs_XIST, Linear_Model) 
 
 # Apply function to list of dfs
-Fem_Res_One_Variable_XIST <- lapply(Fem_lm_One_Variable_XIST, R_Squared)
-Male_Res_One_Variable_XIST <- lapply(Male_lm_One_Variable_XIST, R_Squared)
+f.Res_One_Variable_XIST <- lapply(f.lm_One_Variable_XIST, Regression_Res)
+f.Res_Tuk_Variable_XIST <- lapply(f.lm_Tuk_Variable_XIST, Regression_Res)
+f.Res_Bal_Variable_XIST <- lapply(f.lm_Bal_Variable_XIST, Regression_Res)
+f.Res_Immune_Variable_XIST <- lapply(f.lm_Immune_Variable_XIST, Regression_Res)
 
-Fem_Res_Tuk_Variable_XIST <- lapply(Fem_lm_Tuk_Variable_XIST, R_Squared)
-Male_Res_Tuk_Variable_XIST <- lapply(Male_lm_Tuk_Variable_XIST, R_Squared)
-
-Fem_Res_Bal_Variable_XIST <- lapply(Fem_lm_Bal_Variable_XIST, R_Squared)
-Male_Res_Bal_Variable_XIST <- lapply(Male_lm_Bal_Variable_XIST, R_Squared)
-
-Fem_Res_Immune_Variable_XIST <- lapply(Fem_lm_Immune_Variable_XIST, R_Squared)
-Male_Res_Immune_Variable_XIST <- lapply(Male_lm_Immune_Variable_XIST, R_Squared)
+m.Res_One_Variable_XIST <- lapply(m.lm_One_Variable_XIST, Regression_Res)
+m.Res_Tuk_Variable_XIST <- lapply(m.lm_Tuk_Variable_XIST, Regression_Res)
+m.Res_Bal_Variable_XIST <- lapply(m.lm_Bal_Variable_XIST, Regression_Res)
+m.Res_Immune_Variable_XIST <- lapply(m.lm_Immune_Variable_XIST, Regression_Res)
 
 # Add vector as column to df
-Fem_MeanX_XIST.df$One_Variable_Mean <- unlist(Fem_Res_One_Variable_XIST)
-Male_MeanX_XIST.df$One_Variable_Mean <- unlist(Male_Res_One_Variable_XIST)
+f.MeanX_XIST.df$One_Variable_Mean <- lapply(f.Res_Silenced_XIST, Unlist_Col)
+f.MeanX_XIST.df$Tuk_Variable_Mean <- lapply(f.Res_Tuk_Variable_XIST, Unlist_Col)
+f.MeanX_XIST.df$Bal_Variable_Mean <- lapply(f.Res_Bal_Variable_XIST, Unlist_Col)
+f.MeanX_XIST.df$Immune_Variable_Mean <- lapply(f.Res_Immune_Variable_XIST, Unlist_Col)
 
-Fem_MeanX_XIST.df$Tuk_Variable_Mean <- unlist(Fem_Res_Tuk_Variable_XIST)
-Male_MeanX_XIST.df$Tuk_Variable_Mean <- unlist(Male_Res_Tuk_Variable_XIST)
-
-Fem_MeanX_XIST.df$Bal_Variable_Mean <- unlist(Fem_Res_Bal_Variable_XIST)
-Male_MeanX_XIST.df$Bal_Variable_Mean <- unlist(Male_Res_Bal_Variable_XIST)
-
-Fem_MeanX_XIST.df$Immune_Variable_Mean <- unlist(Fem_Res_Immune_Variable_XIST)
-Male_MeanX_XIST.df$Immune_Variable_Mean <- unlist(Male_Res_Immune_Variable_XIST)
+m.MeanX_XIST.df$One_Variable_Mean <- lapply(m.Res_Silenced_XIST, Unlist_Col)
+m.MeanX_XIST.df$Tuk_Variable_Mean <- lapply(m.Res_Tuk_Variable_XIST, Unlist_Col)
+m.MeanX_XIST.df$Bal_Variable_Mean <- lapply(m.Res_Bal_Variable_XIST, Unlist_Col)
+m.MeanX_XIST.df$Immune_Variable_Mean <- lapply(m.Res_Immune_Variable_XIST, Unlist_Col)
 
 # ________________________________________________________________________________________________________
 # Table 1; Columns 11-14
@@ -758,190 +530,81 @@ Male_MeanX_XIST.df$Immune_Variable_Mean <- unlist(Male_Res_Immune_Variable_XIST)
 # "Incomplete_In_At_Least_One", Incomplete_In_Tukiainen", "Incomplete_In_Balaton", "Immune_Genes_Incomplete_In_At_Least_One"
 
 # Subset list of genes incompletly silenced from each df in list 
-Fem_One_Incomplete <- lapply(Fem_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Incomplete_In_At_Least_One)
-})
-Male_One_Incomplete <- lapply(Male_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Incomplete_In_At_Least_One)
-})
+f.One_Incomplete <- Map(Filter, f.Tissue_Counts, y='Incomplete_In_At_Least_One')
+f.Tuk_Incomplete <- Map(Filter, f.Tissue_Counts, y='Incomplete_In_Tukiainen')
+f.Bal_Incomplete <- Map(Filter, f.Tissue_Counts, y='Incomplete_In_Balaton')
+f.Immune_Incomplete <- Map(Filter, f.Tissue_Counts, y='Immune_Genes_Incomplete_In_At_Least_One')
 
-Fem_Tuk_Incomplete <- lapply(Fem_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Incomplete_In_Tukiainen)
-})
-Male_Tuk_Incomplete <- lapply(Male_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Incomplete_In_Tukiainen)
-})
-
-Fem_Bal_Incomplete <- lapply(Fem_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Incomplete_In_Balaton)
-})
-Male_Bal_Incomplete <- lapply(Male_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Incomplete_In_Balaton)
-})
-
-Fem_Immune_Incomplete <- lapply(Fem_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Immune_Genes_Incomplete_In_At_Least_One)
-})
-Male_Immune_Incomplete <- lapply(Male_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Immune_Genes_Incomplete_In_At_Least_One)
-})
+m.One_Incomplete <- Map(Filter, m.Tissue_Counts, y='Incomplete_In_At_Least_One')
+m.Tuk_Incomplete <- Map(Filter, m.Tissue_Counts, y='Incomplete_In_Tukiainen')
+m.Bal_Incomplete <- Map(Filter, m.Tissue_Counts, y='Incomplete_In_Balaton')
+m.Immune_Incomplete <- Map(Filter, m.Tissue_Counts, y='Immune_Genes_Incomplete_In_At_Least_One')
 
 # Get the mean values of putatively incompletely silenced X chm genes
-Fem_One_Mean_Incomplete <- lapply(Fem_One_Incomplete, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-Male_One_Mean_Incomplete <- lapply(Male_One_Incomplete, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
+f.One_Mean_Incomplete <- lapply(f.One_Incomplete, Mean_Val)
+f.Tuk_Mean_Incomplete <- lapply(f.Tuk_Incomplete, Mean_Val)
+f.Bal_Mean_Incomplete <- lapply(f.Bal_Incomplete, Mean_Val)
+f.Immune_Mean_Incomplete <- lapply(f.Immune_Incomplete, Mean_Val)
 
-Fem_Tuk_Mean_Incomplete <- lapply(Fem_Tuk_Incomplete, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-Male_Tuk_Mean_Incomplete <- lapply(Male_Tuk_Incomplete, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-
-Fem_Bal_Mean_Incomplete <- lapply(Fem_Bal_Incomplete, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-Male_Bal_Mean_Incomplete <- lapply(Male_Bal_Incomplete, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-
-Fem_Immune_Mean_Incomplete <- lapply(Fem_Immune_Incomplete, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-Male_Immune_Mean_Incomplete <- lapply(Male_Immune_Incomplete, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
+m.One_Mean_Incomplete <- lapply(m.One_Incomplete, Mean_Val)
+m.Tuk_Mean_Incomplete <- lapply(m.Tuk_Incomplete, Mean_Val)
+m.Bal_Mean_Incomplete <- lapply(m.Bal_Incomplete, Mean_Val)
+m.Immune_Mean_Incomplete <- lapply(m.Immune_Incomplete, Mean_Val)
 
 # Combine list of mean value of incompletely silenced genes and XIST expression
-Fem_One_Mean_Incomplete_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_One_Mean_Incomplete_Vs_XIST[[i]] <- Combine_Vectors(Fem_One_Mean_Incomplete[[i]], Fem_XIST_Tissue_Counts[[i]])
-}
-names(Fem_One_Mean_Incomplete_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
+f.One_Mean_Incomplete_Vs_XIST <- Combine_Lsts(x=f.One_Mean_Incomplete, y='f.One_Mean_Incomplete_Vs_XIST', z=f.XIST_Tissue_Counts)
+f.Tuk_Mean_Incomplete_Vs_XIST <- Combine_Lsts(x=f.Tuk_Mean_Incomplete, y='f.Tuk_Mean_Incomplete_Vs_XIST', z=f.XIST_Tissue_Counts)
+f.Bal_Mean_Incomplete_Vs_XIST <- Combine_Lsts(x=f.Bal_Mean_Incomplete, y='f.Bal_Mean_Incomplete_Vs_XIST', z=f.XIST_Tissue_Counts)
+f.Immune_Mean_Incomplete_Vs_XIST <- Combine_Lsts(x=f.Immune_Mean_Incomplete, y='f.Immune_Mean_Incomplete_Vs_XIST', z=f.XIST_Tissue_Counts)
 
-Male_One_Mean_Incomplete_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_One_Mean_Incomplete_Vs_XIST[[i]] <- Combine_Vectors(Male_One_Mean_Incomplete[[i]], Male_XIST_Tissue_Counts[[i]])
-}
-names(Male_One_Mean_Incomplete_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
-
-
-Fem_Tuk_Mean_Incomplete_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_Tuk_Mean_Incomplete_Vs_XIST[[i]] <- Combine_Vectors(Fem_Tuk_Mean_Incomplete[[i]], Fem_XIST_Tissue_Counts[[i]])
-}
-names(Fem_Tuk_Mean_Incomplete_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
-
-Male_Tuk_Mean_Incomplete_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_Tuk_Mean_Incomplete_Vs_XIST[[i]] <- Combine_Vectors(Male_Tuk_Mean_Incomplete[[i]], Male_XIST_Tissue_Counts[[i]])
-}
-names(Male_Tuk_Mean_Incomplete_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
-
-
-Fem_Bal_Mean_Incomplete_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_Bal_Mean_Incomplete_Vs_XIST[[i]] <- Combine_Vectors(Fem_Bal_Mean_Incomplete[[i]], Fem_XIST_Tissue_Counts[[i]])
-}
-names(Fem_Bal_Mean_Incomplete_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
-
-Male_Bal_Mean_Incomplete_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_Bal_Mean_Incomplete_Vs_XIST[[i]] <- Combine_Vectors(Male_Bal_Mean_Incomplete[[i]], Male_XIST_Tissue_Counts[[i]])
-}
-names(Male_Bal_Mean_Incomplete_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
-
-
-Fem_Immune_Mean_Incomplete_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_Immune_Mean_Incomplete_Vs_XIST[[i]] <- Combine_Vectors(Fem_Immune_Mean_Incomplete[[i]], Fem_XIST_Tissue_Counts[[i]])
-}
-names(Fem_Immune_Mean_Incomplete_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
-
-Male_Immune_Mean_Incomplete_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_Immune_Mean_Incomplete_Vs_XIST[[i]] <- Combine_Vectors(Male_Immune_Mean_Incomplete[[i]], Male_XIST_Tissue_Counts[[i]])
-}
-names(Male_Immune_Mean_Incomplete_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
+m.One_Mean_Incomplete_Vs_XIST <- Combine_Lsts(x=m.One_Mean_Incomplete, y='m.One_Mean_Incomplete_Vs_XIST', z=m.XIST_Tissue_Counts)
+m.Tuk_Mean_Incomplete_Vs_XIST <- Combine_Lsts(x=m.Tuk_Mean_Incomplete, y='m.Tuk_Mean_Incomplete_Vs_XIST', z=m.XIST_Tissue_Counts)
+m.Bal_Mean_Incomplete_Vs_XIST <- Combine_Lsts(x=m.Bal_Mean_Incomplete, y='m.Bal_Mean_Incomplete_Vs_XIST', z=m.XIST_Tissue_Counts)
+m.Immune_Mean_Incomplete_Vs_XIST <- Combine_Lsts(x=m.Immune_Mean_Incomplete, y='m.Immune_Mean_Incomplete_Vs_XIST', z=m.XIST_Tissue_Counts)
 
 # Rename columns in each df
-Fem_One_Mean_Incomplete_Vs_XIST <- lapply(Fem_One_Mean_Incomplete_Vs_XIST, setNames, c("One_Mean_Incomplete", "XIST")) 
-Male_One_Mean_Incomplete_Vs_XIST <- lapply(Male_One_Mean_Incomplete_Vs_XIST, setNames, c("One_Mean_Incomplete", "XIST"))
+f.One_Mean_Incomplete_Vs_XIST <- lapply(f.One_Mean_Incomplete_Vs_XIST, Rename_Col) 
+f.Tuk_Mean_Incomplete_Vs_XIST <- lapply(f.Tuk_Mean_Incomplete_Vs_XIST, Rename_Col)
+f.Bal_Mean_Incomplete_Vs_XIST <- lapply(f.Bal_Mean_Incomplete_Vs_XIST, Rename_Col)
+f.Immune_Mean_Incomplete_Vs_XIST <- lapply(f.Immune_Mean_Incomplete_Vs_XIST, Rename_Col) 
 
-Fem_Tuk_Mean_Incomplete_Vs_XIST <- lapply(Fem_Tuk_Mean_Incomplete_Vs_XIST, setNames, c("Tuk_Mean_Incomplete", "XIST"))
-Male_Tuk_Mean_Incomplete_Vs_XIST <- lapply(Male_Tuk_Mean_Incomplete_Vs_XIST, setNames, c("Tuk_Mean_Incomplete", "XIST"))
-
-Fem_Bal_Mean_Incomplete_Vs_XIST <- lapply(Fem_Bal_Mean_Incomplete_Vs_XIST, setNames, c("Bal_Mean_Incomplete", "XIST"))
-Male_Bal_Mean_Incomplete_Vs_XIST <- lapply(Male_Bal_Mean_Incomplete_Vs_XIST, setNames, c("Bal_Mean_Incomplete", "XIST")) 
-
-Fem_Immune_Mean_Incomplete_Vs_XIST <- lapply(Fem_Immune_Mean_Incomplete_Vs_XIST, setNames, c("Immune_Mean_Incomplete", "XIST")) 
-Male_Immune_Mean_Incomplete_Vs_XIST <- lapply(Male_Immune_Mean_Incomplete_Vs_XIST, setNames, c("Immune_Mean_Incomplete", "XIST")) 
+m.One_Mean_Incomplete_Vs_XIST <- lapply(m.One_Mean_Incomplete_Vs_XIST, Rename_Col) 
+m.Tuk_Mean_Incomplete_Vs_XIST <- lapply(m.Tuk_Mean_Incomplete_Vs_XIST, Rename_Col)
+m.Bal_Mean_Incomplete_Vs_XIST <- lapply(m.Bal_Mean_Incomplete_Vs_XIST, Rename_Col)
+m.Immune_Mean_Incomplete_Vs_XIST <- lapply(m.Immune_Mean_Incomplete_Vs_XIST, Rename_Col) 
 
 # Apply lm to each df in list
-Fem_lm_One_Incomplete_XIST <- lapply(Fem_One_Mean_Incomplete_Vs_XIST, function(x) {
-  z <- lm(One_Mean_Incomplete ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-Male_lm_One_Incomplete_XIST <- lapply(Male_One_Mean_Incomplete_Vs_XIST, function(x) {
-  z <- lm(One_Mean_Incomplete ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
+f.lm_One_Incomplete_XIST <- lapply(f.One_Mean_Incomplete_Vs_XIST, Linear_Model)
+f.lm_Tuk_Incomplete_XIST <- lapply(f.Tuk_Mean_Incomplete_Vs_XIST, Linear_Model)
+f.lm_Bal_Incomplete_XIST <- lapply(f.Bal_Mean_Incomplete_Vs_XIST, Linear_Model)
+f.lm_Immune_Incomplete_XIST <- lapply(f.Immune_Mean_Incomplete_Vs_XIST, Linear_Model)
 
-Fem_lm_Tuk_Incomplete_XIST <- lapply(Fem_Tuk_Mean_Incomplete_Vs_XIST, function(x) {
-  z <- lm(Tuk_Mean_Incomplete ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-Male_lm_Tuk_Incomplete_XIST <- lapply(Male_Tuk_Mean_Incomplete_Vs_XIST, function(x) {
-  z <- lm(Tuk_Mean_Incomplete ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-
-Fem_lm_Bal_Incomplete_XIST <- lapply(Fem_Bal_Mean_Incomplete_Vs_XIST, function(x) {
-  z <- lm(Bal_Mean_Incomplete ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-Male_lm_Bal_Incomplete_XIST <- lapply(Male_Bal_Mean_Incomplete_Vs_XIST, function(x) {
-  z <- lm(Bal_Mean_Incomplete ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-
-Fem_lm_Immune_Incomplete_XIST <- lapply(Fem_Immune_Mean_Incomplete_Vs_XIST, function(x) {
-  z <- lm(Immune_Mean_Incomplete ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-Male_lm_Immune_Incomplete_XIST <- lapply(Male_Immune_Mean_Incomplete_Vs_XIST, function(x) {
-  z <- lm(Immune_Mean_Incomplete ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
+m.lm_One_Incomplete_XIST <- lapply(m.One_Mean_Incomplete_Vs_XIST, Linear_Model)
+m.lm_Tuk_Incomplete_XIST <- lapply(m.Tuk_Mean_Incomplete_Vs_XIST, Linear_Model)
+m.lm_Bal_Incomplete_XIST <- lapply(m.Bal_Mean_Incomplete_Vs_XIST, Linear_Model)
+m.lm_Immune_Incomplete_XIST <- lapply(m.Immune_Mean_Incomplete_Vs_XIST, Linear_Model)
 
 # Apply function to list of dfs
-Fem_Res_One_Incomplete_XIST <- lapply(Fem_lm_One_Incomplete_XIST, R_Squared)
-Male_Res_One_Incomplete_XIST <- lapply(Male_lm_One_Incomplete_XIST, R_Squared)
+f.Res_One_Incomplete_XIST <- lapply(f.lm_One_Incomplete_XIST, Regression_Res)
+f.Res_Tuk_Incomplete_XIST <- lapply(f.lm_Tuk_Incomplete_XIST, Regression_Res)
+f.Res_Bal_Incomplete_XIST <- lapply(f.lm_Bal_Incomplete_XIST, Regression_Res)
+f.Res_Immune_Incomplete_XIST <- lapply(f.lm_Immune_Incomplete_XIST, Regression_Res)
 
-Fem_Res_Tuk_Incomplete_XIST <- lapply(Fem_lm_Tuk_Incomplete_XIST, R_Squared)
-Male_Res_Tuk_Incomplete_XIST <- lapply(Male_lm_Tuk_Incomplete_XIST, R_Squared)
-
-Fem_Res_Bal_Incomplete_XIST <- lapply(Fem_lm_Bal_Incomplete_XIST, R_Squared)
-Male_Res_Bal_Incomplete_XIST <- lapply(Male_lm_Bal_Incomplete_XIST, R_Squared)
-
-Fem_Res_Immune_Incomplete_XIST <- lapply(Fem_lm_Immune_Incomplete_XIST, R_Squared)
-Male_Res_Immune_Incomplete_XIST <- lapply(Male_lm_Immune_Incomplete_XIST, R_Squared)
+m.Res_Tuk_Incomplete_XIST <- lapply(m.lm_Tuk_Incomplete_XIST, Regression_Res)
+m.Res_One_Incomplete_XIST <- lapply(m.lm_One_Incomplete_XIST, Regression_Res)
+m.Res_Bal_Incomplete_XIST <- lapply(m.lm_Bal_Incomplete_XIST, Regression_Res)
+m.Res_Immune_Incomplete_XIST <- lapply(m.lm_Immune_Incomplete_XIST, Regression_Res)
 
 # Add vector as column to df
-Fem_MeanX_XIST.df$One_Incomplete_Mean <- unlist(Fem_Res_One_Incomplete_XIST)
-Male_MeanX_XIST.df$One_Incomplete_Mean <- unlist(Male_Res_One_Incomplete_XIST)
+f.MeanX_XIST.df$One_Incomplete_Mean <- lapply(f.Res_One_Incomplete_XIST, Unlist_Col) 
+f.MeanX_XIST.df$Tuk_Incomplete_Mean <- lapply(f.Res_Tuk_Incomplete_XIST, Unlist_Col)
+f.MeanX_XIST.df$Bal_Incomplete_Mean <- lapply(f.Res_Bal_Incomplete_XIST, Unlist_Col)
+f.MeanX_XIST.df$Immune_Incomplete_Mean <- lapply(f.Res_Immune_Incomplete_XIST, Unlist_Col)
 
-Fem_MeanX_XIST.df$Tuk_Incomplete_Mean <- unlist(Fem_Res_Tuk_Incomplete_XIST)
-Male_MeanX_XIST.df$Tuk_Incomplete_Mean <- unlist(Male_Res_Tuk_Incomplete_XIST)
-
-Fem_MeanX_XIST.df$Bal_Incomplete_Mean <- unlist(Fem_Res_Bal_Incomplete_XIST)
-Male_MeanX_XIST.df$Bal_Incomplete_Mean <- unlist(Male_Res_Bal_Incomplete_XIST)
-
-Fem_MeanX_XIST.df$Immune_Incomplete_Mean <- unlist(Fem_Res_Immune_Incomplete_XIST)
-Male_MeanX_XIST.df$Immune_Incomplete_Mean <- unlist(Male_Res_Immune_Incomplete_XIST)
+m.MeanX_XIST.df$One_Incomplete_Mean <- lapply(m.Res_One_Incomplete_XIST, Unlist_Col) 
+m.MeanX_XIST.df$Tuk_Incomplete_Mean <- lapply(m.Res_Tuk_Incomplete_XIST, Unlist_Col)
+m.MeanX_XIST.df$Bal_Incomplete_Mean <- lapply(m.Res_Bal_Incomplete_XIST, Unlist_Col)
+m.MeanX_XIST.df$Immune_Incomplete_Mean <- lapply(m.Res_Immune_Incomplete_XIST, Unlist_Col)
 
 # ________________________________________________________________________________________________________
 # Table 1; Columns 15-18
@@ -952,249 +615,139 @@ Male_MeanX_XIST.df$Immune_Incomplete_Mean <- unlist(Male_Res_Immune_Incomplete_X
 # "All_Evaluated_Balaton_Tukiainen", "Not_Evaluated_In_Either", "Immune_Genes_Not_Evaluated", "PAR_In_Balaton"   
 
 # Subset list of genes from each df in list 
-Fem_All_Eval <- lapply(Fem_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$All_Evaluated_Balaton_Tukiainen)
-})
-Male_All_Eval <- lapply(Male_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$All_Evaluated_Balaton_Tukiainen)
-})
+f.All_Eval <- Map(Filter, f.Tissue_Counts, y='All_Evaluated_Balaton_Tukiainen')
+f.Not_Eval <- Map(Filter, f.Tissue_Counts, y='Not_Evaluated_In_Either')
+f.Immune_Not_Eval <- Map(Filter, f.Tissue_Counts, y='Immune_Genes_Not_Evaluated')
+f.PAR_Bal <-  Map(Filter, f.Tissue_Counts, y='PAR_In_Balaton')
 
-Fem_Not_Eval <- lapply(Fem_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Not_Evaluated_In_Either)
-})
-Male_Not_Eval <- lapply(Male_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Not_Evaluated_In_Either)
-})
-
-Fem_Immune_Not_Eval <- lapply(Fem_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Immune_Genes_Not_Evaluated)
-})
-Male_Immune_Not_Eval <- lapply(Male_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$Immune_Genes_Not_Evaluated)
-})
-
-Fem_PAR_Bal <- lapply(Fem_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$PAR_In_Balaton)
-})
-Male_PAR_Bal <- lapply(Male_Tissue_Counts, function(x) {
-  filter(x, gene_name %in% Gene_Lst$PAR_In_Balaton)
-})
+m.All_Eval <- Map(Filter, m.Tissue_Counts, y='All_Evaluated_Balaton_Tukiainen')
+m.Not_Eval <- Map(Filter, m.Tissue_Counts, y='Not_Evaluated_In_Either')
+m.Immune_Not_Eval <- Map(Filter, m.Tissue_Counts, y='Immune_Genes_Not_Evaluated')
+m.PAR_Bal <-  Map(Filter, m.Tissue_Counts, y='PAR_In_Balaton')
 
 # Get the mean values X chm genes
-Fem_All_Eval_Mean <- lapply(Fem_All_Eval, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-Male_All_Eval_Mean <- lapply(Male_All_Eval, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
+f.All_Eval_Mean <- lapply(f.All_Eval, Mean_Val)
+f.Not_Eval_Mean <- lapply(f.Not_Eval, Mean_Val)
+f.Immune_Not_Eval_Mean <- lapply(f.Immune_Not_Eval, Mean_Val)
+f.PAR_Mean <- lapply(f.PAR_Bal, Mean_Val)
 
-Fem_Not_Eval_Mean <- lapply(Fem_Not_Eval, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-Male_Not_Eval_Mean <- lapply(Male_Not_Eval, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-
-Fem_Immune_Not_Eval_Mean <- lapply(Fem_Immune_Not_Eval, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-Male_Immune_Not_Eval_Mean <- lapply(Male_Immune_Not_Eval, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-
-Fem_PAR_Mean <- lapply(Fem_PAR_Bal, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
-Male_PAR_Mean <- lapply(Male_PAR_Bal, function(x){
-  colMeans(x[sapply(x, is.numeric)]) 
-})
+m.All_Eval_Mean <- lapply(m.All_Eval, Mean_Val)
+m.Not_Eval_Mean <- lapply(m.Not_Eval, Mean_Val)
+m.Immune_Not_Eval_Mean <- lapply(m.Immune_Not_Eval, Mean_Val)
+m.PAR_Mean <- lapply(m.PAR_Bal, Mean_Val)
 
 # Combine list of mean value of genes and XIST expression
-Fem_All_Eval_Mean_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_All_Eval_Mean_Vs_XIST[[i]] <- Combine_Vectors(Fem_All_Eval_Mean[[i]], Fem_XIST_Tissue_Counts[[i]])
-}
-names(Fem_All_Eval_Mean_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
+f.All_Eval_Mean_Vs_XIST <- Combine_Lsts(x=f.All_Eval_Mean, y='f.All_Eval_Mean_Vs_XIST', z=f.XIST_Tissue_Counts)
+f.Not_Eval_Mean_Vs_XIST <- Combine_Lsts(x=f.Not_Eval_Mean, y='f.Not_Eval_Mean_Vs_XIST', z=f.XIST_Tissue_Counts)
+f.Immune_Not_Eval_Mean_Vs_XIST <- Combine_Lsts(x=f.Immune_Not_Eval_Mean, y='f.Immune_Not_Eval_Mean_Vs_XIST', z=f.XIST_Tissue_Counts)
+f.PAR_Mean_Vs_XIST <- Combine_Lsts(x=f.PAR_Mean, y='f.PAR_Mean_Vs_XIST', z=f.XIST_Tissue_Counts)
 
-Male_All_Eval_Mean_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_All_Eval_Mean_Vs_XIST[[i]] <- Combine_Vectors(Male_All_Eval_Mean[[i]], Male_XIST_Tissue_Counts[[i]])
-}
-names(Male_All_Eval_Mean_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
-
-
-Fem_Not_Eval_Mean_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_Not_Eval_Mean_Vs_XIST[[i]] <- Combine_Vectors(Fem_Not_Eval_Mean[[i]], Fem_XIST_Tissue_Counts[[i]])
-}
-names(Fem_Not_Eval_Mean_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
-
-Male_Not_Eval_Mean_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_Not_Eval_Mean_Vs_XIST[[i]] <- Combine_Vectors(Male_Not_Eval_Mean[[i]], Male_XIST_Tissue_Counts[[i]])
-}
-names(Male_Not_Eval_Mean_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
-
-
-Fem_Immune_Not_Eval_Mean_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_Immune_Not_Eval_Mean_Vs_XIST[[i]] <- Combine_Vectors(Fem_Immune_Not_Eval_Mean[[i]], Fem_XIST_Tissue_Counts[[i]])
-}
-names(Fem_Immune_Not_Eval_Mean_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
-
-Male_Immune_Not_Eval_Mean_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_Immune_Not_Eval_Mean_Vs_XIST[[i]] <- Combine_Vectors(Male_Immune_Not_Eval_Mean[[i]], Male_XIST_Tissue_Counts[[i]])
-}
-names(Male_Immune_Not_Eval_Mean_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
-
-
-Fem_PAR_Mean_Vs_XIST <- list()
-for (i in 1:length(Fem_XIST_Tissue_Counts)){
-  Fem_PAR_Mean_Vs_XIST[[i]] <- Combine_Vectors(Fem_PAR_Mean[[i]], Fem_XIST_Tissue_Counts[[i]])
-}
-names(Fem_PAR_Mean_Vs_XIST) <- names(Fem_XIST_Tissue_Counts)
-
-Male_PAR_Mean_Vs_XIST <- list()
-for (i in 1:length(Male_XIST_Tissue_Counts)){
-  Male_PAR_Mean_Vs_XIST[[i]] <- Combine_Vectors(Male_PAR_Mean[[i]], Male_XIST_Tissue_Counts[[i]])
-}
-names(Male_PAR_Mean_Vs_XIST) <- names(Male_XIST_Tissue_Counts)
+m.All_Eval_Mean_Vs_XIST <- Combine_Lsts(x=m.All_Eval_Mean, y='m.All_Eval_Mean_Vs_XIST', z=m.XIST_Tissue_Counts)
+m.Not_Eval_Mean_Vs_XIST <- Combine_Lsts(x=m.Not_Eval_Mean, y='m.Not_Eval_Mean_Vs_XIST', z=m.XIST_Tissue_Counts)
+m.Immune_Not_Eval_Mean_Vs_XIST <- Combine_Lsts(x=m.Immune_Not_Eval_Mean, y='m.Immune_Not_Eval_Mean_Vs_XIST', z=m.XIST_Tissue_Counts)
+m.PAR_Mean_Vs_XIST <- Combine_Lsts(x=m.PAR_Mean, y='m.PAR_Mean_Vs_XIST', z=m.XIST_Tissue_Counts)
 
 # Rename columns in each df
-Fem_All_Eval_Mean_Vs_XIST <- lapply(Fem_All_Eval_Mean_Vs_XIST, setNames, c("All_Eval_Mean", "XIST")) 
-Male_All_Eval_Mean_Vs_XIST <- lapply(Male_All_Eval_Mean_Vs_XIST, setNames, c("All_Eval_Mean", "XIST")) 
+f.All_Eval_Mean_Vs_XIST <- lapply(f.All_Eval_Mean_Vs_XIST, Rename_Col) 
+f.Not_Eval_Mean_Vs_XIST <- lapply(f.Not_Eval_Mean_Vs_XIST, Rename_Col) 
+f.Immune_Not_Eval_Mean_Vs_XIST <- lapply(f.Immune_Not_Eval_Mean_Vs_XIST, Rename_Col) 
+f.PAR_Mean_Vs_XIST <- lapply(f.PAR_Mean_Vs_XIST, Rename_Col) 
 
-Fem_Not_Eval_Mean_Vs_XIST <- lapply(Fem_Not_Eval_Mean_Vs_XIST, setNames, c("Not_Eval_Mean", "XIST")) 
-Male_Not_Eval_Mean_Vs_XIST <- lapply(Male_Not_Eval_Mean_Vs_XIST, setNames, c("Not_Eval_Mean", "XIST"))
-
-Fem_Immune_Not_Eval_Mean_Vs_XIST <- lapply(Fem_Immune_Not_Eval_Mean_Vs_XIST, setNames, c("Immune_Not_Eval_Mean", "XIST")) 
-Male_Immune_Not_Eval_Mean_Vs_XIST <- lapply(Male_Immune_Not_Eval_Mean_Vs_XIST, setNames, c("Immune_Not_Eval_Mean", "XIST")) 
-
-Fem_PAR_Mean_Vs_XIST <- lapply(Fem_PAR_Mean_Vs_XIST, setNames, c("PAR_Mean", "XIST")) 
-Male_PAR_Mean_Vs_XIST <- lapply(Male_PAR_Mean_Vs_XIST, setNames, c("PAR_Mean", "XIST")) 
+m.All_Eval_Mean_Vs_XIST <- lapply(m.All_Eval_Mean_Vs_XIST, Rename_Col) 
+m.Not_Eval_Mean_Vs_XIST <- lapply(m.Not_Eval_Mean_Vs_XIST, Rename_Col) 
+m.Immune_Not_Eval_Mean_Vs_XIST <- lapply(m.Immune_Not_Eval_Mean_Vs_XIST, Rename_Col) 
+m.PAR_Mean_Vs_XIST <- lapply(m.PAR_Mean_Vs_XIST, Rename_Col) 
 
 # Apply lm to each df in list
-Fem_lm_All_Eval <- lapply(Fem_All_Eval_Mean_Vs_XIST, function(x) {
-  z <- lm(All_Eval_Mean ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-Male_lm_All_Eval <- lapply(Male_All_Eval_Mean_Vs_XIST, function(x) {
-  z <- lm(All_Eval_Mean ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
+f.lm_All_Eval <- lapply(f.All_Eval_Mean_Vs_XIST, Linear_Model)
+f.lm_Not_Eval <- lapply(f.Not_Eval_Mean_Vs_XIST, Linear_Model)
+f.lm_Immune_Not_Eval <- lapply(f.Immune_Not_Eval_Mean_Vs_XIST, Linear_Model)
+f.lm_PAR <- lapply(f.PAR_Mean_Vs_XIST, Linear_Model)
 
-Fem_lm_Not_Eval <- lapply(Fem_Not_Eval_Mean_Vs_XIST, function(x) {
-  z <- lm(Not_Eval_Mean ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-Male_lm_Not_Eval <- lapply(Male_Not_Eval_Mean_Vs_XIST, function(x) {
-  z <- lm(Not_Eval_Mean ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-
-Fem_lm_Immune_Not_Eval <- lapply(Fem_Immune_Not_Eval_Mean_Vs_XIST, function(x) {
-  z <- lm(Immune_Not_Eval_Mean ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-Male_lm_Immune_Not_Eval <- lapply(Male_Immune_Not_Eval_Mean_Vs_XIST, function(x) {
-  z <- lm(Immune_Not_Eval_Mean ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-
-Fem_lm_PAR <- lapply(Fem_PAR_Mean_Vs_XIST, function(x) {
-  z <- lm(PAR_Mean ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
-Male_lm_PAR <- lapply(Male_PAR_Mean_Vs_XIST, function(x) {
-  z <- lm(PAR_Mean ~ XIST, data = x, na.action = na.omit)
-  return(z)
-})
+m.lm_All_Eval <- lapply(m.All_Eval_Mean_Vs_XIST, Linear_Model)
+m.lm_Not_Eval <- lapply(m.Not_Eval_Mean_Vs_XIST, Linear_Model)
+m.lm_Immune_Not_Eval <- lapply(m.Immune_Not_Eval_Mean_Vs_XIST, Linear_Model)
+m.lm_PAR <- lapply(m.PAR_Mean_Vs_XIST, Linear_Model)
 
 # Apply function to list of dfs
-Fem_Res_All_Eval <- lapply(Fem_lm_All_Eval, R_Squared)
-Male_Res_All_Eval <- lapply(Male_lm_All_Eval, R_Squared)
+f.Res_All_Eval <- lapply(f.lm_All_Eval, Regression_Res)
+f.Res_Not_Eval <- lapply(f.lm_Not_Eval, Regression_Res)
+f.Res_Immune_Not_Eval <- lapply(f.lm_Immune_Not_Eval, Regression_Res)
+f.Res_PAR <- lapply(f.lm_PAR, Regression_Res)
 
-Fem_Res_Not_Eval <- lapply(Fem_lm_Not_Eval, R_Squared)
-Male_Res_Not_Eval <- lapply(Male_lm_Not_Eval, R_Squared)
-
-Fem_Res_Immune_Not_Eval <- lapply(Fem_lm_Immune_Not_Eval, R_Squared)
-Male_Res_Immune_Not_Eval <- lapply(Male_lm_Immune_Not_Eval, R_Squared)
-
-Fem_Res_PAR <- lapply(Fem_lm_PAR, R_Squared)
-Male_Res_PAR <- lapply(Male_lm_PAR, R_Squared)
+m.Res_All_Eval <- lapply(m.lm_All_Eval, Regression_Res)
+m.Res_Not_Eval <- lapply(m.lm_Not_Eval, Regression_Res)
+m.Res_Immune_Not_Eval <- lapply(m.lm_Immune_Not_Eval, Regression_Res)
+m.Res_PAR <- lapply(m.lm_PAR, Regression_Res)
 
 # Add vector as column to df
-Fem_MeanX_XIST.df$All_Eval <- unlist(Fem_Res_All_Eval)
-Male_MeanX_XIST.df$All_Eval <- unlist(Male_Res_All_Eval)
+f.MeanX_XIST.df$All_Eval <- lapply(f.Res_All_Eval, Unlist_Col)
+f.MeanX_XIST.df$Not_Eval <- lapply(f.Res_Not_Eval, Unlist_Col)
+f.MeanX_XIST.df$Immune_Not_Eval <- lapply(f.Res_Immune_Not_Eval, Unlist_Col)
+f.MeanX_XIST.df$PAR <- lapply(f.Res_PAR, Unlist_Col)
 
-Fem_MeanX_XIST.df$Not_Eval <- unlist(Fem_Res_Not_Eval)
-Male_MeanX_XIST.df$Not_Eval <- unlist(Male_Res_Not_Eval)
-
-Fem_MeanX_XIST.df$Immune_Not_Eval <- unlist(Fem_Res_Immune_Not_Eval)
-Male_MeanX_XIST.df$Immune_Not_Eval <- unlist(Male_Res_Immune_Not_Eval)
-
-Fem_MeanX_XIST.df$PAR <- unlist(Fem_Res_PAR)
-Male_MeanX_XIST.df$PAR <- unlist(Male_Res_PAR)
+m.MeanX_XIST.df$All_Eval <- lapply(m.Res_All_Eval, Unlist_Col)
+m.MeanX_XIST.df$Not_Eval <- lapply(m.Res_Not_Eval, Unlist_Col)
+m.MeanX_XIST.df$Immune_Not_Eval <- lapply(m.Res_Immune_Not_Eval, Unlist_Col)
+m.MeanX_XIST.df$PAR <- lapply(m.Res_PAR, Unlist_Col)
 
 # ________________________________________________________________________________________________________
 #  Write table 1 and summary 
 # ________________________________________________________________________________________________________
+# Average R^2 of silenced genes reported in both studies for females and males
+f.df1 <- f.MeanX_XIST.df %>% summarise(Silenced = mean(Silenced_Mean))
+m.df1 <- m.MeanX_XIST.df %>% summarise(Silenced = mean(Silenced_Mean))
+
+f.df2 <- f.MeanX_XIST.df %>% summarise(Tuk_Silenced = mean(Tuk_Silenced_Mean))
+m.df2 <- m.MeanX_XIST.df %>% summarise(Tuk_Silenced = mean(Tuk_Silenced_Mean))
+
+f.df3 <- f.MeanX_XIST.df %>% summarise(Bal_Silenced = mean(Bal_Silenced_Mean))
+m.df3 <- m.MeanX_XIST.df %>% summarise(Bal_Silenced = mean(Bal_Silenced_Mean))
+
+f.df4 <- f.MeanX_XIST.df %>% summarise(One_Silenced = mean(One_Silenced_Mean))
+m.df4 <- m.MeanX_XIST.df %>% summarise(One_Silenced = mean(One_Silenced_Mean))
+
+f.df5 <- f.MeanX_XIST.df %>% summarise(Immune_Silenced = mean(Immune_Silenced_Mean))
+m.df5 <- m.MeanX_XIST.df %>% summarise(Immune_Silenced = mean(Immune_Silenced_Mean))
 
 # Average R^2 of silenced genes reported in both studies for females and males
-f.df1 <- Fem_MeanX_XIST.df %>% summarise(Silenced = mean(Silenced_Mean))
-m.df1 <- Male_MeanX_XIST.df %>% summarise(Silenced = mean(Silenced_Mean))
+f.df6 <- f.MeanX_XIST.df %>% summarise(One_Variable = mean(One_Variable_Mean))
+m.df6 <- m.MeanX_XIST.df %>% summarise(One_Variable = mean(One_Variable_Mean))
 
-f.df2 <- Fem_MeanX_XIST.df %>% summarise(Tuk_Silenced = mean(Tuk_Silenced_Mean))
-m.df2 <- Male_MeanX_XIST.df %>% summarise(Tuk_Silenced = mean(Tuk_Silenced_Mean))
+f.df7 <- f.MeanX_XIST.df %>% summarise(Tuk_Variable = mean(Tuk_Variable_Mean))
+m.df7 <- m.MeanX_XIST.df %>% summarise(Tuk_Variable = mean(Tuk_Variable_Mean))
 
-f.df3 <- Fem_MeanX_XIST.df %>% summarise(Bal_Silenced = mean(Bal_Silenced_Mean))
-m.df3 <- Male_MeanX_XIST.df %>% summarise(Bal_Silenced = mean(Bal_Silenced_Mean))
+f.df8 <- f.MeanX_XIST.df %>% summarise(Bal_Variable = mean(Bal_Variable_Mean))
+m.df8 <- m.MeanX_XIST.df %>% summarise(Bal_Variable = mean(Bal_Variable_Mean))
 
-f.df4 <- Fem_MeanX_XIST.df %>% summarise(One_Silenced = mean(One_Silenced_Mean))
-m.df4 <- Male_MeanX_XIST.df %>% summarise(One_Silenced = mean(One_Silenced_Mean))
-
-f.df5 <- Fem_MeanX_XIST.df %>% summarise(Immune_Silenced = mean(Immune_Silenced_Mean))
-m.df5 <- Male_MeanX_XIST.df %>% summarise(Immune_Silenced = mean(Immune_Silenced_Mean))
+f.df9 <- f.MeanX_XIST.df %>% summarise(Immune_Variable = mean(Immune_Variable_Mean))
+m.df9 <- m.MeanX_XIST.df %>% summarise(Immune_Variable = mean(Immune_Variable_Mean))
 
 # Average R^2 of silenced genes reported in both studies for females and males
-f.df6 <- Fem_MeanX_XIST.df %>% summarise(One_Variable = mean(One_Variable_Mean))
-m.df6 <- Male_MeanX_XIST.df %>% summarise(One_Variable = mean(One_Variable_Mean))
+f.df10 <- f.MeanX_XIST.df %>% summarise(One_Incomplete = mean(One_Incomplete_Mean))
+m.df10 <- m.MeanX_XIST.df %>% summarise(One_Incomplete = mean(One_Incomplete_Mean))
 
-f.df7 <- Fem_MeanX_XIST.df %>% summarise(Tuk_Variable = mean(Tuk_Variable_Mean))
-m.df7 <- Male_MeanX_XIST.df %>% summarise(Tuk_Variable = mean(Tuk_Variable_Mean))
+f.df11 <- f.MeanX_XIST.df %>% summarise(Tuk_Incomplete = mean(Tuk_Incomplete_Mean))
+m.df11 <- m.MeanX_XIST.df %>% summarise(Tuk_Incomplete = mean(Tuk_Incomplete_Mean))
 
-f.df8 <- Fem_MeanX_XIST.df %>% summarise(Bal_Variable = mean(Bal_Variable_Mean))
-m.df8 <- Male_MeanX_XIST.df %>% summarise(Bal_Variable = mean(Bal_Variable_Mean))
+f.df12 <- f.MeanX_XIST.df %>% summarise(Bal_Incomplete = mean(Bal_Incomplete_Mean))
+m.df12 <- m.MeanX_XIST.df %>% summarise(Bal_Incomplete = mean(Bal_Incomplete_Mean))
 
-f.df9 <- Fem_MeanX_XIST.df %>% summarise(Immune_Variable = mean(Immune_Variable_Mean))
-m.df9 <- Male_MeanX_XIST.df %>% summarise(Immune_Variable = mean(Immune_Variable_Mean))
-
-# Average R^2 of silenced genes reported in both studies for females and males
-f.df10 <- Fem_MeanX_XIST.df %>% summarise(One_Incomplete = mean(One_Incomplete_Mean))
-m.df10 <- Male_MeanX_XIST.df %>% summarise(One_Incomplete = mean(One_Incomplete_Mean))
-
-f.df11 <- Fem_MeanX_XIST.df %>% summarise(Tuk_Incomplete = mean(Tuk_Incomplete_Mean))
-m.df11 <- Male_MeanX_XIST.df %>% summarise(Tuk_Incomplete = mean(Tuk_Incomplete_Mean))
-
-f.df12 <- Fem_MeanX_XIST.df %>% summarise(Bal_Incomplete = mean(Bal_Incomplete_Mean))
-m.df12 <- Male_MeanX_XIST.df %>% summarise(Bal_Incomplete = mean(Bal_Incomplete_Mean))
-
-f.df13 <- Fem_MeanX_XIST.df %>% summarise(Immune_Incomplete = mean(Immune_Incomplete_Mean))
-m.df13 <- Male_MeanX_XIST.df %>% summarise(Immune_Incomplete = mean(Immune_Incomplete_Mean))
+f.df13 <- f.MeanX_XIST.df %>% summarise(Immune_Incomplete = mean(Immune_Incomplete_Mean))
+m.df13 <- m.MeanX_XIST.df %>% summarise(Immune_Incomplete = mean(Immune_Incomplete_Mean))
 
 # Average R^2 of genes for females and males
-f.df14 <- Fem_MeanX_XIST.df %>% summarise(All_Eval = mean(All_Eval))
-m.df14 <- Male_MeanX_XIST.df %>% summarise(All_Eval = mean(All_Eval))
+f.df14 <- f.MeanX_XIST.df %>% summarise(All_Eval = mean(All_Eval))
+m.df14 <- m.MeanX_XIST.df %>% summarise(All_Eval = mean(All_Eval))
 
-f.df15 <- Fem_MeanX_XIST.df %>% summarise(Not_Eval = mean(Not_Eval))
-m.df15 <- Male_MeanX_XIST.df %>% summarise(Not_Eval = mean(Not_Eval))
+f.df15 <- f.MeanX_XIST.df %>% summarise(Not_Eval = mean(Not_Eval))
+m.df15 <- m.MeanX_XIST.df %>% summarise(Not_Eval = mean(Not_Eval))
 
-f.df16 <- Fem_MeanX_XIST.df %>% summarise(Immune_Not_Eval = mean(Immune_Not_Eval))
-m.df16 <- Male_MeanX_XIST.df %>% summarise(Immune_Not_Eval = mean(Immune_Not_Eval))
+f.df16 <- f.MeanX_XIST.df %>% summarise(Immune_Not_Eval = mean(Immune_Not_Eval))
+m.df16 <- m.MeanX_XIST.df %>% summarise(Immune_Not_Eval = mean(Immune_Not_Eval))
 
-f.df17 <- Fem_MeanX_XIST.df %>% summarise(Bal_PAR = mean(PAR))
-m.df17 <- Male_MeanX_XIST.df %>% summarise(Bal_PAR = mean(PAR))
+f.df17 <- f.MeanX_XIST.df %>% summarise(Bal_PAR = mean(PAR))
+m.df17 <- m.MeanX_XIST.df %>% summarise(Bal_PAR = mean(PAR))
 
 # Add column with number of tissues
 Num_Tissues <- function(x){
@@ -1202,8 +755,8 @@ Num_Tissues <- function(x){
   return(res)
 }
 
-Num_Fem <- lapply(Fem_Tissue_Lst, Num_Tissues)
-Num_Male <- lapply(Male_Tissue_Lst, Num_Tissues)
+Num_Fem <- lapply(f.Tissue_Lst, Num_Tissues)
+Num_Male <- lapply(m.Tissue_Lst, Num_Tissues)
 
 # Drop tissues females/males do not have
 f.remove <- c("Prostate", "Testis", "Cells - Leukemia cell line (CML)")
@@ -1212,18 +765,18 @@ m.remove <- c("Ovary", "Uterus", "Vagina", "Fallopian Tube", "Cervix - Ectocervi
 Num_Fem <- Num_Fem[!names(Num_Fem) %in% f.remove]
 Num_Male <- Num_Male[!names(Num_Male) %in% m.remove]
 
-Fem_MeanX_XIST.df$Num_Tissues <- Num_Fem
-Male_MeanX_XIST.df$Num_Tissues <- Num_Male
+f.MeanX_XIST.df$Num_Tissues <- Num_Fem
+m.MeanX_XIST.df$Num_Tissues <- Num_Male
 
 # Add col with mean(XIST) and sd(XIST)
-Fem_MeanX_XIST.df$Mean_XIST <- lapply(Fem_XIST_Tissue_Counts, mean)
-Male_MeanX_XIST.df$Mean_XIST <- lapply(Male_XIST_Tissue_Counts, mean)
+f.MeanX_XIST.df$Mean_XIST <- lapply(f.XIST_Tissue_Counts, mean)
+m.MeanX_XIST.df$Mean_XIST <- lapply(m.XIST_Tissue_Counts, mean)
 
-Fem_MeanX_XIST.df$sd_XIST <- lapply(Fem_XIST_Tissue_Counts, sd)
-Male_MeanX_XIST.df$sd_XIST <- lapply(Male_XIST_Tissue_Counts, sd)
+f.MeanX_XIST.df$sd_XIST <- lapply(f.XIST_Tissue_Counts, sd)
+m.MeanX_XIST.df$sd_XIST <- lapply(m.XIST_Tissue_Counts, sd)
 
-Fem_MeanX_XIST.df <- apply(Fem_MeanX_XIST.df, 2, as.character)
-Male_MeanX_XIST.df <- apply(Male_MeanX_XIST.df, 2, as.character)
+#f.MeanX_XIST.df <- apply(f.MeanX_XIST.df, 2, as.character)
+#m.MeanX_XIST.df <- apply(m.MeanX_XIST.df, 2, as.character)
 
 # Combine dfs of averages to make quick summary 
 f.df_lst <- list(f.df1, f.df2, f.df3, f.df4, f.df5, f.df6, f.df7, f.df8, f.df9, f.df10, f.df11, f.df12, f.df13, f.df14, f.df15, f.df16, f.df17)
@@ -1233,36 +786,36 @@ f.Combined <- Reduce(merge, lapply(f.df_lst, function(x) data.frame(x, rn = row.
 m.Combined <- Reduce(merge, lapply(m.df_lst, function(x) data.frame(x, rn = row.names(x))))
 
 # Write to file
-# write.csv(f.Combined, "Female_Tissue_Linear_Models_Summary.csv")
-# write.csv(m.Combined, "Male_Tissue_Linear_Models_Summary.csv")
-# write.csv(Fem_MeanX_XIST.df, "Female_Tissue_Correlations.csv")
-# write.csv(Male_MeanX_XIST.df, "Male_Tissue_Correlations.csv")
+# write.csv(f.Combined, "Fem.Tissue_Linear_Models_Summary.csv")
+# write.csv(m.Combined, "m.Tissue_Linear_Models_Summary.csv")
+# write.csv(f.MeanX_XIST.df, "Fem.Tissue_Correlations.csv")
+# write.csv(m.MeanX_XIST.df, "m.Tissue_Correlations.csv")
 
 # Table of slopes
 # Get list of female and male tissue type samples
-Fem_Tissues <- rownames(Fem_MeanX_XIST.df)
-Male_Tissues <- rownames(Male_MeanX_XIST.df)
+f.Tissues <- rownames(f.MeanX_XIST.df)
+m.Tissues <- rownames(m.MeanX_XIST.df)
 
 # Extract list of slopes
-Fem_Slopes <- lapply(lm_Fem_MeanX_XIST, function(x){
+f.Slopes <- lapply(lm_f.MeanX_XIST, function(x){
   res <- x[[1]][[2]]
   return(res)
 })
 
-Male_Slopes <- lapply(lm_Male_MeanX_XIST, function(x){
+m.Slopes <- lapply(lm_m.MeanX_XIST, function(x){
   res <- x[[1]][[2]]
   return(res)
 })
 
 # Make and write df
-l <- list(Fem_Slopes, Male_Slopes)
+l <- list(f.Slopes, m.Slopes)
 Slopes.df <- rbindlist(l, use.names=TRUE, fill=TRUE, idcol="Sex")
 Slopes.df$Sex <- c("Female", "Male")
 
 #write.csv(Slopes.df, "Tissue_Slopes_Table.csv")
 
 # ________________________________________________________________________________________________________
-#  TO-DO: adjust R_Squared function to also extract p-values
+#  TO-DO: adjust Regression_Res function to also extract p-values
 # ________________________________________________________________________________________________________
 # Function to extract r squared  and p values values
 ### QUESTION: Do I want to set lower.tail to F?
@@ -1277,8 +830,8 @@ Regression_Res <- function(lm){ # expecting object of class 'lm'
 }
 
 # Apply function to list of dfs
-Res_Fem_MeanX_XIST <- lapply(lm_Fem_MeanX_XIST, Regression_Res)
-Res_Male_MeanX_XIST <- lapply(lm_Male_MeanX_XIST, Regression_Res)
+Res_f.MeanX_XIST <- lapply(lm_f.MeanX_XIST, Regression_Res)
+Res_m.MeanX_XIST <- lapply(lm_m.MeanX_XIST, Regression_Res)
 
 # ________________________________________________________________________________________________________
 #  Scatter Plots
@@ -1290,11 +843,11 @@ Max_Func <- function(x, y){
 }
 
 # x limits
-f.xmax <- round(max(unlist(Map(Max_Func, x=Fem_MeanX_Vs_XIST, y='XIST'))))
-m.xmax <- max(unlist(Map(Max_Func, x=Male_MeanX_Vs_XIST, y='XIST')))
+f.xmax <- round(max(unlist(Map(Max_Func, x=f.MeanX_Vs_XIST, y='XIST'))))
+m.xmax <- max(unlist(Map(Max_Func, x=m.MeanX_Vs_XIST, y='XIST')))
 # y limits
-f.ymax <- round(max(unlist(Map(Max_Func, x=Fem_MeanX_Vs_XIST, y='MeanX'))))
-m.ymax <- max(unlist(Map(Max_Func, x=Male_MeanX_Vs_XIST, y='MeanX')))
+f.ymax <- round(max(unlist(Map(Max_Func, x=f.MeanX_Vs_XIST, y='MeanX'))))
+m.ymax <- max(unlist(Map(Max_Func, x=m.MeanX_Vs_XIST, y='MeanX')))
 
 # Scatter plots: Correlation by tissue
 Scatter_Func <- function(LM, TITLE, XMAX, YMAX, RESULTS){
@@ -1305,44 +858,34 @@ Scatter_Func <- function(LM, TITLE, XMAX, YMAX, RESULTS){
 }
 
 # Print plots
-#pdf('Female_Tissue_Scatter_Plots.pdf')
-f.Scatter <- Map(Scatter_Func, LM=lm_Fem_MeanX_XIST, TITLE=names(lm_Fem_MeanX_XIST), XMAX=f.xmax, YMAX=f.ymax, RESULTS=Res_Fem_MeanX_XIST)
+#pdf('Fem.Tissue_Scatter_Plots.pdf')
+f.Scatter <- Map(Scatter_Func, LM=lm_f.MeanX_XIST, TITLE=names(lm_f.MeanX_XIST), XMAX=f.xmax, YMAX=f.ymax, RESULTS=Res_f.MeanX_XIST)
 #dev.off()
 
-#pdf('Male_Tissue_Scatter_Plots.pdf')
+#pdf('m.Tissue_Scatter_Plots.pdf')
 # set x lim to male max(XIST) but keep y lim as female max(MeanX)
-m.Scatter <- Map(Scatter_Func, LM=lm_Male_MeanX_XIST, TITLE=names(lm_Male_MeanX_XIST), XMAX=m.xmax, YMAX=f.ymax, RESULTS=Res_Male_MeanX_XIST)
+m.Scatter <- Map(Scatter_Func, LM=lm_m.MeanX_XIST, TITLE=names(lm_m.MeanX_XIST), XMAX=m.xmax, YMAX=f.ymax, RESULTS=Res_m.MeanX_XIST)
 #dev.off()
 
 # ________________________________________________________________________________________________________
 #  Violin Plots
 # ________________________________________________________________________________________________________
 library(ggplot2)
-library(Hmisc)
+library(plyr)
 
-# test violin plot
-ggplot(Fem_MeanX_Vs_XIST$`Adipose - Subcutaneous`, aes(x=XIST, y=MeanX)) + 
-  geom_violin() + stat_summary(fun.y=mean, geom="point", shape=23, size=2) + # add mean point
-  stat_summary(fun.data="mean_sdl", mult=1, geom="crossbar", width=0.2 ) +
-  stat_summary(fun.data=mean_sdl, mult=1, geom="pointrange", color="red")
+# Create a Violin plot
+ggplot(f.MeanX_Vs_XIST$`Adipose - Subcutaneous`, aes(x =XIST, y = MeanX)) + 
+  geom_violin()
+
+
+# Collapse list of dfs into one df
+f.MeanX_Vs_XIST <- ldply(f.MeanX_Vs_XIST, data.frame)
 
 # Violin plot function
-### idk if I need this step
-Drop_Rownames <- function(x){
-  rownames(x) <- c()
-  return(x)
+Violin <- function(x){
+  ggplot(x, aes(x =XIST, y = MeanX)) + 
+    geom_violin()
 }
-f.Violin_MeanX_XIST <- lapply(Fem_MeanX_Vs_XIST, Drop_Rownames)
-
-# Have to merge list of dfs to one df
-f.plotData <- do.call("rbind", f.Violin_MeanX_XIST)
-
-Violin_Func <- function(x){
-  ggplot(x, aes(x=XIST, y=MeanX)) + 
-    geom_violin()  
-}
-Map(Violin_Func, x=f.Violin_MeanX_XIST)
-
-
+test <- lapply(f.MeanX_Vs_XIST, Violin)
 
 
