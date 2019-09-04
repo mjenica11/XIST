@@ -18,9 +18,6 @@ library(stringr)
 library(broom)
 library(rjson)
 
-# read.gtf will only accept relative path
-setwd("~/XIST_Vs_TSIX/Files/")
-
 # Read in files
 Metrics <- read_tsv(METRICS) # Contains tissue sample info
 Phenotypes <- read_tsv(PHENOTYPES) # Contains sex info
@@ -321,7 +318,7 @@ m.One_Mean_Silenced <- lapply(m.One_Silenced, Mean_Val)
 m.Immune_Mean_Silenced <- lapply(m.Immune_Silenced, Mean_Val)
 
 # Combine list of mean value of silenced genes and XIST expression
-f.Silenced_Mean_Vs_XIST <- Combine_Lsts(x='f.Silenced_Mean_Vs_XIST', x=f.Mean_Silenced, z=f.XIST_Tissue_Counts)
+f.Silenced_Mean_Vs_XIST <- Combine_Lsts(x='f.Silenced_Mean_Vs_XIST', y=f.Mean_Silenced, z=f.XIST_Tissue_Counts)
 f.Tuk_Silenced_Mean_Vs_XIST <- Combine_Lsts(x='f.Tuk_Silenced_Mean_Vs_XIST', y=f.Tuk_Mean_Silenced, z=f.XIST_Tissue_Counts)
 f.Bal_Silenced_Mean_Vs_XIST <- Combine_Lsts(x='f.Bal_Silenced_Mean_Vs_XIST', y=f.Bal_Mean_Silenced, z=f.XIST_Tissue_Counts)
 f.One_Silenced_Mean_Vs_XIST <- Combine_Lsts(x='f.One_Silenced_Mean_Vs_XIST', y=f.One_Mean_Silenced, z=f.XIST_Tissue_Counts)
@@ -669,6 +666,13 @@ m.MeanX_XIST.df$R2_PAR <- lapply(m.Res_PAR, Unlist_Col)
 f.MeanX_XIST.df <- mutate_all(f.MeanX_XIST.df, function(x) as.numeric(x))
 m.MeanX_XIST.df <- mutate_all(m.MeanX_XIST.df, function(x) as.numeric(x))
 
+# Add col with mean(XIST) and sd(XIST)
+f.MeanX_XIST.df$Mean_XIST <- lapply(f.XIST_Tissue_Counts, mean)
+m.MeanX_XIST.df$Mean_XIST <- lapply(m.XIST_Tissue_Counts, mean)
+
+f.MeanX_XIST.df$sd_XIST <- lapply(f.XIST_Tissue_Counts, sd)
+m.MeanX_XIST.df$sd_XIST <- lapply(m.XIST_Tissue_Counts, sd)
+
 # Average R^2 of silenced genes reported in both studies for females and males
 Summary.df <- data.frame(Female=colMeans(f.MeanX_XIST.df), Male=colMeans(m.MeanX_XIST.df))
 
@@ -692,13 +696,6 @@ cbind.fill <- function(...){
 
 Sample_Size.df <- data.frame(cbind.fill(Num_Fem,Num_Male))
 colnames(Sample_Size.df) <- c("Female","Male")
-
-# Add col with mean(XIST) and sd(XIST)
-f.MeanX_XIST.df$Mean_XIST <- lapply(f.XIST_Tissue_Counts, mean)
-m.MeanX_XIST.df$Mean_XIST <- lapply(m.XIST_Tissue_Counts, mean)
-
-f.MeanX_XIST.df$sd_XIST <- lapply(f.XIST_Tissue_Counts, sd)
-m.MeanX_XIST.df$sd_XIST <- lapply(m.XIST_Tissue_Counts, sd)
 
 # Add column indicating tissue
 f.MeanX_XIST.df <- cbind(Tissue=names(f.Tissue_Lst), f.MeanX_XIST.df) 
@@ -770,22 +767,77 @@ m.Scatter <- Map(Scatter_Func, LM=lm_m.MeanX_XIST, TITLE=names(lm_m.MeanX_XIST),
 # _________________________________________________________________________________________________________________________________
 #  Violin Plots
 # _________________________________________________________________________________________________________________________________
-library(ggplot2)
+library(plotly)
+
+# Collapse list of dfs into one with just XIST column
 library(plyr)
+f.df <- ldply(f.MeanX_Vs_XIST, data.frame)
+f.df$Tissue <- f.df$.id
+f.df$.id <- NULL
 
-# Create a Violin plot
-ggplot(f.MeanX_Vs_XIST$`Adipose - Subcutaneous`, aes(x =XIST, y = MeanX)) + 
-  geom_violin()
+# Violin plots for one sex at a time
+p <- f.df %>%
+  plot_ly(
+    x = ~Tissue,
+    y = ~XIST,
+    split = ~Tissue,
+    type = 'violin',
+    box = list(
+      visible = T
+    ),
+    meanline = list(
+      visible = T
+    )
+  ) %>% 
+  layout(
+    xaxis = list(
+      title = "Tissue Type"
+    ),
+    yaxis = list(
+      title = "XIST",
+      zeroline = F
+    )
+  )
+p
 
-
-# Collapse list of dfs into one df
-f.MeanX_Vs_XIST <- ldply(f.MeanX_Vs_XIST, data.frame)
-
-# Violin plot function
-Violin <- function(x){
-  ggplot(x, aes(x =XIST, y = MeanX)) + 
-    geom_violin()
-}
-test <- lapply(f.MeanX_Vs_XIST, Violin)
-
-
+# Male and female tissues next to each other
+p <- df %>%
+  plot_ly(type = 'violin') %>%
+  add_trace(
+    x = ~day[df$sex == 'Male'],
+    y = ~total_bill[df$sex == 'Male'],
+    legendgroup = 'M',
+    scalegroup = 'M',
+    name = 'M',
+    box = list(
+      visible = T
+    ),
+    meanline = list(
+      visible = T
+    ),
+    line = list(
+      color = 'blue'
+    )
+  ) %>%
+  add_trace(
+    x = ~day[df$sex == 'Female'],
+    y = ~total_bill[df$sex == 'Female'],
+    legendgroup = 'F',
+    scalegroup = 'F',
+    name = 'F',
+    box = list(
+      visible = T
+    ),
+    meanline = list(
+      visible = T
+    ),
+    line = list(
+      color = 'pink'
+    )
+  ) %>% 
+  layout(
+    yaxis = list(
+      zeroline = F
+    ),
+    violinmode = 'group'
+  )
