@@ -791,3 +791,232 @@ Slopes.df$Sex <- c("Female", "Male")
 
 #write.csv(Slopes.df, "Tissue_Slopes_Table.csv")
 
+# _________________________________________________________________________________________________________________________________
+#  Scatter Plots
+# _________________________________________________________________________________________________________________________________
+# Find the max x/y values to set as x/y lim
+Max_Func <- function(x, y){
+  lim <- max(x[[y]])
+  return(lim)
+}
+
+# x limits
+f.xmax <- round(max(unlist(Map(Max_Func, x=f.MeanX_Vs_XIST, y='XIST'))))
+m.xmax <- max(unlist(Map(Max_Func, x=m.MeanX_Vs_XIST, y='XIST')))
+# y limits
+f.ymax <- round(max(unlist(Map(Max_Func, x=f.MeanX_Vs_XIST, y='MeanX'))))
+m.ymax <- max(unlist(Map(Max_Func, x=m.MeanX_Vs_XIST, y='MeanX')))
+
+# Scatter plots: Correlation by tissue
+Scatter_Func <- function(LM, TITLE, XMAX, YMAX, RESULTS){
+  plot(LM$model$XIST, LM$model$MeanX, main=TITLE, xlab='XIST', ylab='Mean X chromosome',
+       xlim=c(0, XMAX), ylim=c(0, YMAX))
+  legend("bottomright", bty="n", legend=paste("R^2: ", format(RESULTS$r_2, digits=3), "; p_Val: ", format(RESULTS$p_val, digits=3)))
+  abline(LM)
+}
+
+# Print plots
+#pdf('Fem.Tissue_Scatter_Plots.pdf')
+f.Scatter <- Map(Scatter_Func, LM=lm_f.MeanX_XIST, TITLE=names(lm_f.MeanX_XIST), XMAX=f.xmax, YMAX=f.ymax, RESULTS=Res_f.MeanX_XIST)
+#dev.off()
+
+#pdf('m.Tissue_Scatter_Plots.pdf')
+# set x lim to male max(XIST) but keep y lim as female max(MeanX)
+m.Scatter <- Map(Scatter_Func, LM=lm_m.MeanX_XIST, TITLE=names(lm_m.MeanX_XIST), XMAX=m.xmax, YMAX=f.ymax, RESULTS=Res_m.MeanX_XIST)
+#dev.off()
+
+# _________________________________________________________________________________________________________________________________
+#  Violin Plots
+# _________________________________________________________________________________________________________________________________
+# For future reference, don't use plotly; You have to pay for a subscription to use pdf()/tiff() with plotly objects 
+# Printed plots using viewer
+
+# Collapse list of dfs into one with just XIST column
+f.df <- ldply(f.MeanX_Vs_XIST, data.frame)
+f.df$Tissue <- f.df$.id
+f.df$.id <- NULL
+
+m.df <- ldply(m.MeanX_Vs_XIST, data.frame)
+m.df$Tissue <- m.df$.id
+m.df$.id <- NULL
+
+# Seperate into brain, and two dfs non-brain tissues
+Brain_Tissues <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",                 
+                   "Brain - Anterior cingulate cortex (BA24)", "Brain - Frontal Cortex (BA9)",             
+                   "Brain - Cerebellar Hemisphere", "Brain - Caudate (basal ganglia)",          
+                   "Brain - Nucleus accumbens (basal ganglia)", "Brain - Putamen (basal ganglia)",          
+                   "Brain - Hypothalamus", "Brain - Spinal cord (cervical c-1)",       
+                   "Brain - Amygdala", "Brain - Cerebellum")
+
+f.Not_Brain <- c("Adipose - Subcutaneous", "Muscle - Skeletal", "Artery - Tibial", "Artery - Coronary",                        
+                "Heart - Atrial Appendage", "Adipose - Visceral (Omentum)", "Ovary", "Uterus",                                   
+                "Vagina", "Breast - Mammary Tissue", "Skin - Not Sun Exposed (Suprapubic)", 
+                "Minor Salivary Gland", "Adrenal Gland", "Thyroid", "Lung","Spleen", "Pancreas",                                  
+                "Esophagus - Muscularis", "Esophagus - Mucosa","Esophagus - Gastroesophageal Junction",
+                "Stomach", "Colon - Sigmoid", "Small Intestine - Terminal Ileum",         
+                "Colon - Transverse", "Skin - Sun Exposed (Lower leg)",           
+                "Nerve - Tibial", "Heart - Left Ventricle", "Pituitary",                                                        
+                "Cells - Transformed fibroblasts", "Whole Blood",                              
+                "Artery - Aorta", "Cells - EBV-transformed lymphocytes",       
+                "Liver", "Kidney - Cortex", "Fallopian Tube",                           
+                "Bladder", "Cervix - Ectocervix", "Cervix - Endocervix")
+
+m.Not_Brain <- c("Adipose - Subcutaneous", "Muscle - Skeletal","Artery - Tibial", "Artery - Coronary",                        
+                "Heart - Atrial Appendage", "Adipose - Visceral (Omentum)", "Breast - Mammary Tissue", 
+                "Skin - Not Sun Exposed (Suprapubic)", "Minor Salivary Gland", "Adrenal Gland", "Thyroid",                                  
+                "Lung", "Spleen", "Pancreas", "Esophagus - Muscularis",                   
+                "Esophagus - Mucosa", "Esophagus - Gastroesophageal Junction",
+                "Stomach", "Colon - Sigmoid","Small Intestine - Terminal Ileum", "Colon - Transverse",                       
+                "Prostate", "Testis", "Skin - Sun Exposed (Lower leg)", "Nerve - Tibial",                           
+                "Heart - Left Ventricle", "Pituitary", "Cells - Transformed fibroblasts",          
+                "Whole Blood", "Artery - Aorta","Cells - EBV-transformed lymphocytes", "Liver",                                    
+                "Kidney - Cortex", "Bladder")                       
+
+# Subset df for plots
+Brain_f.df <- f.df[f.df$Tissue %in% Brain_Tissues,]
+Not_Brain_f.df <- f.df[f.df$Tissue %in% f.Not_Brain,]
+
+Brain_m.df <- m.df[m.df$Tissue %in% Brain_Tissues,]
+Not_Brain_m.df <- m.df[m.df$Tissue %in% m.Not_Brain,]
+
+# Violin plots for one sex at a time
+# XIST: All non-brain tissues
+f.XIST_Not_Brain <- Not_Brain_f.df %>%
+  plot_ly(
+    x = ~Tissue,
+    y = ~XIST,
+    split = ~Tissue,
+    type = 'violin',
+    box = list(visible = T),
+    meanline = list(visible = T)
+  ) %>% 
+  layout(
+    title = 'Violin Plots of XIST Expression in Female Tissues',
+    showlegend = FALSE,
+    xaxis = list(title = "Tissue Type"),
+    yaxis = list(title = "XIST", zeroline = F, range = c(0, 360))
+  )
+f.XIST_Not_Brain
+
+m.XIST_Not_Brain <- Not_Brain_m.df %>%
+  plot_ly(
+    x = ~Tissue,
+    y = ~XIST,
+    split = ~Tissue,
+    type = 'violin',
+    box = list(visible = T),
+    meanline = list(visible = T)
+  ) %>% 
+  layout(
+    title = 'Violin Plots of XIST Expression in Male Tissues',
+    showlegend = FALSE,
+    xaxis = list(title = "Tissue Type"),
+    yaxis = list(title = "XIST", zeroline = F, range = c(0, 30))
+  )
+m.XIST_Not_Brain
+
+# MeanX: All non-brain tissues
+f.MeanX_Not_Brain <- Not_Brain_f.df %>%
+  plot_ly(
+    x = ~Tissue,
+    y = ~MeanX,
+    split = ~Tissue,
+    type = 'violin',
+    box = list(visible = T),
+    meanline = list(visible = T)
+  ) %>% 
+  layout(
+    title = 'Violin Plots of Mean X Chromosome Expression in Female Tissues',
+    showlegend = FALSE,
+    xaxis = list(title = "Tissue Type"),
+    yaxis = list(title = "Mean X Chromosome", zeroline = F, range = c(0, 30))
+  )
+f.MeanX_Not_Brain
+
+m.MeanX_Not_Brain <- Not_Brain_m.df %>%
+  plot_ly(
+    x = ~Tissue,
+    y = ~MeanX,
+    split = ~Tissue,
+    type = 'violin',
+    box = list(visible = T),
+    meanline = list(visible = T)
+  ) %>% 
+  layout(
+    title = 'Violin Plots of Mean X Chromosome Expression in Male Tissues',
+    showlegend = FALSE,
+    xaxis = list(title = "Tissue Type"),
+    yaxis = list(title = "Mean X Chromosome", zeroline = F, range = c(0, 30))
+  )
+m.MeanX_Not_Brain
+
+#  XIST: Brain
+f.XIST_Brain <- Brain_f.df %>%
+  plot_ly(
+    x = ~Tissue,
+    y = ~XIST,
+    split = ~Tissue,
+    type = 'violin',
+    box = list(visible = T),
+    meanline = list(visible = T)
+  ) %>% 
+  layout(
+    title = 'Violin Plots of XIST Expression in Female Brain Tissues',
+    showlegend = FALSE,
+    xaxis = list(title = "Tissue Type"),
+    yaxis = list(title = "XIST", zeroline = F, range = c(0, 360))
+  )
+f.XIST_Brain
+
+m.XIST_Brain <- Brain_m.df %>%
+  plot_ly(
+    x = ~Tissue,
+    y = ~XIST,
+    split = ~Tissue,
+    type = 'violin',
+    box = list(visible = T),
+    meanline = list(visible = T)
+  ) %>% 
+  layout(
+    title = 'Violin Plots of XIST Expression in Male Brain Tissues',
+    showlegend = FALSE,
+    xaxis = list(title = "Tissue Type"),
+    yaxis = list(title = "XIST", zeroline = F, range = c(0, 30))
+  )
+m.XIST_Brain
+
+#  Mean X: Brain
+f.MeanX_Brain <- Brain_f.df %>%
+  plot_ly(
+    x = ~Tissue,
+    y = ~MeanX,
+    split = ~Tissue,
+    type = 'violin',
+    box = list(visible = T),
+    meanline = list(visible = T)
+  ) %>% 
+  layout(
+    title = 'Violin Plots of Mean X Chromosome Expression in Female Brain Tissues',
+    showlegend = FALSE,
+    xaxis = list(title = "Tissue Type"),
+    yaxis = list(title = "Mean X Chromosome", zeroline = F, range = c(0, 30))
+  )
+f.MeanX_Brain
+
+m.MeanX_Brain <- Brain_m.df %>%
+  plot_ly(
+    x = ~Tissue,
+    y = ~MeanX,
+    split = ~Tissue,
+    type = 'violin',
+    box = list(visible = T),
+    meanline = list(visible = T)
+  ) %>% 
+  layout(
+    title = 'Violin Plots of Mean X Chromosome Expression in Male Brain Tissues',
+    showlegend = FALSE,
+    xaxis = list(title = "Tissue Type"),
+    yaxis = list(title = "Mean X Chromosome", zeroline = F, range = c(0, 30))
+  )
+m.MeanX_Brain
+
