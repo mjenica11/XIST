@@ -1020,3 +1020,61 @@ m.MeanX_Brain <- Brain_m.df %>%
   )
 m.MeanX_Brain
 
+
+###### TEST ########
+# Split violin plots
+
+# Combine male and female MeanX and XIST counts into one df
+m.df$m.MeanX <- m.df$MeanX
+m.df$m.XIST <- m.df$XIST
+m.df$XIST <- NULL
+m.df$MeanX <- NULL
+View(m.df)
+
+f.df$f.MeanX <- f.df$MeanX
+f.df$f.XIST <- f.df$XIST
+f.df$XIST <- NULL
+f.df$MeanX <- NULL
+View(f.df)
+
+# Merge dfs; it should exclude tissues not shared by both sexes
+all.df <- merge(f.df, m.df, by='Tissue')
+Brain_all.df <- all.df[all.df$Tissue %in% Brain_Tissues,]
+
+
+p <- Brain_all.df %>%
+  plot_ly(type = 'violin') %>%
+  add_trace(
+    x = ~Tissue,
+    y = ~f.MeanX,
+    legendgroup = 'Female',
+    scalegroup = 'Female',
+    name = 'Female',
+    side = 'negative',
+    box = list(visible = T),
+    meanline = list(visible = T),
+    line = list(color = 'darkblue'),
+    fillcolor = 'blue',
+    marker = list(fillcolor='darkblue')
+  ) %>%
+  add_trace(
+    x = ~Tissue,
+    y = ~m.MeanX,
+    legendgroup = 'Male',
+    scalegroup = 'Male',
+    name = 'Male',
+    side = 'positive',
+    box = list(visible = T),
+    meanline = list(visible = T),
+    line = list(color = 'darkgreen'),
+    fillcolor = 'green'
+  ) %>% 
+  layout(
+    title = "Mean X Chromosome Expression in Female and Male Brain Tissues",
+    xaxis = list(title = "Brain Tissue Types"),
+    yaxis = list(title = "Mean X Chm Read Count", zeroline = F),
+    violingap = 0,
+    violingroupgap = 0,
+    violinmode = 'overlay'
+  )
+p
