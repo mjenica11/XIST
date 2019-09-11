@@ -1027,3 +1027,41 @@ ggplot(Common.df, aes(x=Mean_XIST, y=R2_MeanX)) +
   ggtitle('R2 for XIST and Mean X vs Mean XIST') +
   xlab('Mean XIST') +
   ylab('R2 for XIST and Mean X') 
+
+# _________________________________________________________________________________________________________________________________
+#  Venn diagram; overlap between gene classification schemes
+# _________________________________________________________________________________________________________________________________
+library(VennDiagram)
+library(grDevices)
+library(grid)
+
+Venn_2 <- function(a, b, TITLE){
+  venn.plot <- venn.diagram(
+    x = list('Tukainen' = Gene_Lst[[a]], 'Balaton'= Gene_Lst[[b]]),
+    filename = NULL,
+    scaled = TRUE,
+    col = "transparent",
+    fill = c("firebrick", "deepskyblue4"),
+    main.pos = c(0.5, 1.0),
+    cex = 1.5,
+    cat.cex = 1.5,
+    main.cex = 2,
+    cat.default.pos = "outer",
+    cat.pos = c(170,-170), 
+    cat.dist = c(0.05,0.05),
+    cat.fontfamily = "sans",
+    main = TITLE,
+    fontfamily = "sans",
+    na = "remove",
+    inverted = FALSE)
+  
+    grid.newpage()
+   return(grid.draw(venn.plot))
+}
+Map(Venn_2, a='Incomplete_In_Tukiainen', b='Incomplete_In_Balaton', TITLE='Venn Diagram of Incomplete Genes')
+Map(Venn_2, a='Variable_In_Tukiainen', b='Variable_In_Balaton', TITLE='Venn Diagram of Variable Genes')
+Map(Venn_2, a='Silenced_In_Tukiainen', b='Silenced_In_Balaton', TITLE='Venn Diagram of Silenced Genes')
+
+
+
+
