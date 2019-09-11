@@ -216,7 +216,7 @@ identical(names(f.XIST_Tissue_Counts), names(f.MeanX_Tissue_Counts)) # TRUE
 identical(names(m.XIST_Tissue_Counts), names(m.MeanX_Tissue_Counts)) # TRUE
 
 # _________________________________________________________________________________________________________________________________
-# Table 1; Column 1:
+# Table 1; Column 1:2
 # Correlate expression from XIST with X chromosome expression within a person across all of their tissues.
 # _________________________________________________________________________________________________________________________________
 # Function to combine vectors into df
@@ -276,7 +276,7 @@ colnames(f.MeanX_XIST.df) <- c("pval_MeanX", "R2_MeanX")
 colnames(m.MeanX_XIST.df) <- c("pval_MeanX","R2_MeanX")
 
 # _________________________________________________________________________________________________________________________________
-# Table 1; Columns 2-6
+# Table 1; Columns 3:12
 # Correlation of all genes reported as silenced with XIST
 # _________________________________________________________________________________________________________________________________
 # Categories:
@@ -413,7 +413,7 @@ m.MeanX_XIST.df$pval_Immune_Silenced_Mean <- lapply(m.Immune_Res_Silenced_XIST, 
 m.MeanX_XIST.df$R2_Immune_Silenced_Mean <- lapply(m.Immune_Res_Silenced_XIST, Return_R2)
 
 # _________________________________________________________________________________________________________________________________
-# Table 1; Columns 7-10
+# Table 1; Columns 13:20
 # Correlation of all genes reported as variably silenced with XIST
 # _________________________________________________________________________________________________________________________________
 # Categories:
@@ -515,7 +515,7 @@ m.MeanX_XIST.df$R2_Bal_Variable_Mean <- lapply(m.Res_Bal_Variable_XIST, Return_R
 m.MeanX_XIST.df$pval_Immune_Variable_Mean <- lapply(m.Res_Immune_Variable_XIST, Return_pval)
 m.MeanX_XIST.df$R2_Immune_Variable_Mean <- lapply(m.Res_Immune_Variable_XIST, Return_R2)
 # _________________________________________________________________________________________________________________________________
-# Table 1; Columns 11-14
+# Table 1; Columns 21:28
 # Correlation of all genes reported as incompletely silenced with XIST
 # _________________________________________________________________________________________________________________________________
 # Categories:
@@ -618,7 +618,7 @@ m.MeanX_XIST.df$pval_Immune_Incomplete_Mean <- lapply(m.Res_Immune_Incomplete_XI
 m.MeanX_XIST.df$R2_Immune_Incomplete_Mean <- lapply(m.Res_Immune_Incomplete_XIST, Return_R2)
 
 # _________________________________________________________________________________________________________________________________
-# Table 1; Columns 15-18
+# Table 1; Columns 29:36
 # Correlation of all genes/ all genes not evaluated / PAR genes with XIST
 # _________________________________________________________________________________________________________________________________
 # Categories:
@@ -721,7 +721,7 @@ m.MeanX_XIST.df$pval_PAR <- lapply(m.Res_PAR, Return_pval)
 m.MeanX_XIST.df$R2_PAR <- lapply(m.Res_PAR, Return_R2)
 
 # _________________________________________________________________________________________________________________________________
-#  Write table 1 and summary tables
+#  Write table 1 and summary tables; Columns 37:39
 # _________________________________________________________________________________________________________________________________
 # Add col with mean(XIST) and sd(XIST)
 f.MeanX_XIST.df$Mean_XIST <- lapply(f.XIST_Tissue_Counts, mean)
@@ -733,9 +733,6 @@ m.MeanX_XIST.df$sd_XIST <- lapply(m.XIST_Tissue_Counts, sd)
 # Convert cols in df to numeric vectors
 f.MeanX_XIST.df <- mutate_all(f.MeanX_XIST.df, function(x) as.numeric(x))
 m.MeanX_XIST.df <- mutate_all(m.MeanX_XIST.df, function(x) as.numeric(x))
-
-# Average R^2 of silenced genes reported in both studies for females and males
-Summary.df <- data.frame(Female=colMeans(f.MeanX_XIST.df), Male=colMeans(m.MeanX_XIST.df))
 
 # Add column with number of tissues
 Num_Tissues <- function(x){
@@ -758,17 +755,24 @@ cbind.fill <- function(...){
 Sample_Size.df <- data.frame(cbind.fill(Num_Fem,Num_Male))
 colnames(Sample_Size.df) <- c("Female","Male")
 
-# Add column indicating tissue
+# Add column indicating sample tissue type as first column
 f.MeanX_XIST.df <- cbind(Tissue=names(f.Tissue_Lst), f.MeanX_XIST.df) 
 m.MeanX_XIST.df <- cbind(Tissue=names(m.Tissue_Lst), m.MeanX_XIST.df) 
 
 # Write to file
-# write.csv(f.Combined, "Female_Tissue_Linear_Models_Summary.csv")
-# write.csv(m.Combined, "Male_Tissue_Linear_Models_Summary.csv")
 # write.csv(f.MeanX_XIST.df, "Female_Tissue_Correlations.csv")
 # write.csv(m.MeanX_XIST.df, "Male_Tissue_Correlations.csv")
 
-# Table of slopes
+# _________________________________________________________________________________________________________________________________
+#  Correlations summary
+# _________________________________________________________________________________________________________________________________
+# Average R^2 of silenced genes reported in both studies for females and males
+Summary.df <- data.frame(Female=colMeans(f.MeanX_XIST.df), Male=colMeans(m.MeanX_XIST.df))
+# write.csv(Summary.df, "Tissue_Linear_Model_Averages.csv")
+
+# _________________________________________________________________________________________________________________________________
+#  Table of Slopes
+# _________________________________________________________________________________________________________________________________
 # Get list of female and male tissue type samples
 f.Tissues <- rownames(f.MeanX_XIST.df)
 m.Tissues <- rownames(m.MeanX_XIST.df)
@@ -790,6 +794,13 @@ Slopes.df <- rbindlist(l, use.names=TRUE, fill=TRUE, idcol="Sex")
 Slopes.df$Sex <- c("Female", "Male")
 
 #write.csv(Slopes.df, "Tissue_Slopes_Table.csv")
+
+# _________________________________________________________________________________________________________________________________
+#  Session Data
+# _________________________________________________________________________________________________________________________________
+#save.image(file='Gene_Tissue_091119.RData')
+
+load('Gene_Tissue_091119.RData')
 
 # _________________________________________________________________________________________________________________________________
 #  Scatter Plots
@@ -826,7 +837,7 @@ m.Scatter <- Map(Scatter_Func, LM=lm_m.MeanX_XIST, TITLE=names(lm_m.MeanX_XIST),
 #dev.off()
 
 # _________________________________________________________________________________________________________________________________
-#  Violin Plots
+#  Single-Sex Violin Plots 
 # _________________________________________________________________________________________________________________________________
 # For future reference, don't use plotly; You have to pay for a subscription to use pdf()/tiff() with plotly objects 
 # Printed plots using viewer
@@ -915,41 +926,6 @@ m.XIST_Not_Brain <- Not_Brain_m.df %>%
   )
 m.XIST_Not_Brain
 
-# MeanX: All non-brain tissues
-f.MeanX_Not_Brain <- Not_Brain_f.df %>%
-  plot_ly(
-    x = ~Tissue,
-    y = ~MeanX,
-    split = ~Tissue,
-    type = 'violin',
-    box = list(visible = T),
-    meanline = list(visible = T)
-  ) %>% 
-  layout(
-    title = 'Violin Plots of Mean X Chromosome Expression in Female Tissues',
-    showlegend = FALSE,
-    xaxis = list(title = "Tissue Type"),
-    yaxis = list(title = "Mean X Chromosome", zeroline = F, range = c(0, 30))
-  )
-f.MeanX_Not_Brain
-
-m.MeanX_Not_Brain <- Not_Brain_m.df %>%
-  plot_ly(
-    x = ~Tissue,
-    y = ~MeanX,
-    split = ~Tissue,
-    type = 'violin',
-    box = list(visible = T),
-    meanline = list(visible = T)
-  ) %>% 
-  layout(
-    title = 'Violin Plots of Mean X Chromosome Expression in Male Tissues',
-    showlegend = FALSE,
-    xaxis = list(title = "Tissue Type"),
-    yaxis = list(title = "Mean X Chromosome", zeroline = F, range = c(0, 30))
-  )
-m.MeanX_Not_Brain
-
 #  XIST: Brain
 f.XIST_Brain <- Brain_f.df %>%
   plot_ly(
@@ -985,68 +961,48 @@ m.XIST_Brain <- Brain_m.df %>%
   )
 m.XIST_Brain
 
-#  Mean X: Brain
-f.MeanX_Brain <- Brain_f.df %>%
-  plot_ly(
-    x = ~Tissue,
-    y = ~MeanX,
-    split = ~Tissue,
-    type = 'violin',
-    box = list(visible = T),
-    meanline = list(visible = T)
-  ) %>% 
-  layout(
-    title = 'Violin Plots of Mean X Chromosome Expression in Female Brain Tissues',
-    showlegend = FALSE,
-    xaxis = list(title = "Tissue Type"),
-    yaxis = list(title = "Mean X Chromosome", zeroline = F, range = c(0, 30))
-  )
-f.MeanX_Brain
+# _________________________________________________________________________________________________________________________________
+#  Split Violin Plots 
+# _________________________________________________________________________________________________________________________________
+# Brain; Female/Male split violin plots
+# Subset female and male dfs to only sex-shared tissues
+Shared <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",                 
+            "Brain - Anterior cingulate cortex (BA24)", "Brain - Frontal Cortex (BA9)",             
+            "Brain - Cerebellar Hemisphere", "Brain - Caudate (basal ganglia)",          
+            "Brain - Nucleus accumbens (basal ganglia)", "Brain - Putamen (basal ganglia)",          
+            "Brain - Hypothalamus", "Brain - Spinal cord (cervical c-1)",       
+            "Brain - Amygdala", "Brain - Cerebellum", "Adipose - Subcutaneous", 
+            "Muscle - Skeletal", "Artery - Tibial", "Artery - Coronary",                        
+            "Heart - Atrial Appendage", "Adipose - Visceral (Omentum)",                                   
+            "Breast - Mammary Tissue", "Skin - Not Sun Exposed (Suprapubic)", 
+            "Minor Salivary Gland", "Adrenal Gland", "Thyroid", "Lung","Spleen", "Pancreas",                                  
+            "Esophagus - Muscularis", "Esophagus - Mucosa","Esophagus - Gastroesophageal Junction",
+            "Stomach", "Colon - Sigmoid", "Small Intestine - Terminal Ileum",         
+            "Colon - Transverse", "Skin - Sun Exposed (Lower leg)",           
+            "Nerve - Tibial", "Heart - Left Ventricle", "Pituitary",                                                        
+            "Cells - Transformed fibroblasts", "Whole Blood",                              
+            "Artery - Aorta", "Liver", "Kidney - Cortex", "Bladder")
 
-m.MeanX_Brain <- Brain_m.df %>%
-  plot_ly(
-    x = ~Tissue,
-    y = ~MeanX,
-    split = ~Tissue,
-    type = 'violin',
-    box = list(visible = T),
-    meanline = list(visible = T)
-  ) %>% 
-  layout(
-    title = 'Violin Plots of Mean X Chromosome Expression in Male Brain Tissues',
-    showlegend = FALSE,
-    xaxis = list(title = "Tissue Type"),
-    yaxis = list(title = "Mean X Chromosome", zeroline = F, range = c(0, 30))
-  )
-m.MeanX_Brain
+Shared_f.df <- f.df[f.df$Tissue %in% Shared, ]
+Shared_m.df <- m.df[m.df$Tissue %in% Shared, ]
 
+# Check that both dfs have same factor levels is Tissue column
+levels(factor(Shared_m.df$Tissue)) == levels(factor(Shared_f.df$Tissue)) # all TRUE
 
-###### TEST ########
-# Split violin plots
+# Add column indicating sex 
+Shared_f.df$Sex <- 'Female' # nrow = 3704
+Shared_m.df$Sex <- 'Male'   # nrow = 7040
 
-# Combine male and female MeanX and XIST counts into one df
-m.df$m.MeanX <- m.df$MeanX
-m.df$m.XIST <- m.df$XIST
-m.df$XIST <- NULL
-m.df$MeanX <- NULL
-View(m.df)
-
-f.df$f.MeanX <- f.df$MeanX
-f.df$f.XIST <- f.df$XIST
-f.df$XIST <- NULL
-f.df$MeanX <- NULL
-View(f.df)
-
-# Merge dfs; it should exclude tissues not shared by both sexes
-all.df <- merge(f.df, m.df, by='Tissue')
+# Merge female/male dfs containing shared tissues
+all.df <- rbind(Shared_f.df, Shared_m.df) # nrow = 10744; expected 
 Brain_all.df <- all.df[all.df$Tissue %in% Brain_Tissues,]
 
-
+# Split brain violin plot
 p <- Brain_all.df %>%
   plot_ly(type = 'violin') %>%
   add_trace(
-    x = ~Tissue,
-    y = ~f.MeanX,
+    x = ~Tissue[Brain_all.df$Sex == 'Female'],
+    y = ~MeanX[Brain_all.df$Sex == 'Female'],
     legendgroup = 'Female',
     scalegroup = 'Female',
     name = 'Female',
@@ -1058,8 +1014,8 @@ p <- Brain_all.df %>%
     marker = list(fillcolor='darkblue')
   ) %>%
   add_trace(
-    x = ~Tissue,
-    y = ~m.MeanX,
+    x = ~Tissue[Brain_all.df$Sex == 'Male'],
+    y = ~MeanX[Brain_all.df$Sex == 'Male'],
     legendgroup = 'Male',
     scalegroup = 'Male',
     name = 'Male',
@@ -1072,9 +1028,62 @@ p <- Brain_all.df %>%
   layout(
     title = "Mean X Chromosome Expression in Female and Male Brain Tissues",
     xaxis = list(title = "Brain Tissue Types"),
+    yaxis = list(title = "Mean X Chm Read Count", zeroline = F)
+  )
+p
+
+
+# Not-Brain tissues shared between sexes; Split violin plot
+all.Not_Brain <- c("Adipose - Subcutaneous", "Muscle - Skeletal","Artery - Tibial", "Artery - Coronary",                        
+                 "Heart - Atrial Appendage", "Adipose - Visceral (Omentum)", "Breast - Mammary Tissue", 
+                 "Skin - Not Sun Exposed (Suprapubic)", "Minor Salivary Gland", "Adrenal Gland", "Thyroid",                                  
+                 "Lung", "Spleen", "Pancreas", "Esophagus - Muscularis",                   
+                 "Esophagus - Mucosa", "Esophagus - Gastroesophageal Junction",
+                 "Stomach", "Colon - Sigmoid","Small Intestine - Terminal Ileum", "Colon - Transverse",                       
+                  "Skin - Sun Exposed (Lower leg)", "Nerve - Tibial",                           
+                 "Heart - Left Ventricle", "Pituitary", "Cells - Transformed fibroblasts",          
+                 "Whole Blood", "Artery - Aorta","Cells - EBV-transformed lymphocytes", "Liver",                                    
+                 "Kidney - Cortex", "Bladder")                       
+
+# Subset df for plots
+Not_Brain_all.df <- all.df[all.df$Tissue %in% all.Not_Brain,]
+
+p <- Not_Brain_all.df %>%
+  plot_ly(type = 'violin') %>%
+  add_trace(
+    x = ~Tissue[Not_Brain_all.df$Sex == 'Female'],
+    y = ~MeanX[Not_Brain_all.df$Sex == 'Female'],
+    legendgroup = 'Female',
+    scalegroup = 'Female',
+    name = 'Female',
+    side = 'negative',
+    box = list(visible = T),
+    meanline = list(visible = T),
+    line = list(color = 'darkblue'),
+    fillcolor = 'blue',
+    marker = list(fillcolor='darkblue')
+  ) %>%
+  add_trace(
+    x = ~Tissue[Not_Brain_all.df$Sex == 'Male'],
+    y = ~MeanX[Not_Brain_all.df$Sex == 'Male'],
+    legendgroup = 'Male',
+    scalegroup = 'Male',
+    name = 'Male',
+    side = 'positive',
+    box = list(visible = T),
+    meanline = list(visible = T),
+    line = list(color = 'darkgreen'),
+    fillcolor = 'green'
+  ) %>% 
+  layout(
+    title = "Mean X Chromosome Expression in Tissues Common to Both Sexes",
+    xaxis = list(title = "Tissue Types"),
     yaxis = list(title = "Mean X Chm Read Count", zeroline = F),
     violingap = 0,
     violingroupgap = 0,
     violinmode = 'overlay'
   )
 p
+
+
+
