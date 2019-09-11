@@ -890,76 +890,29 @@ Not_Brain_f.df <- f.df[f.df$Tissue %in% f.Not_Brain,]
 Brain_m.df <- m.df[m.df$Tissue %in% Brain_Tissues,]
 Not_Brain_m.df <- m.df[m.df$Tissue %in% m.Not_Brain,]
 
-# Violin plots for one sex at a time
-# XIST: All non-brain tissues
-f.XIST_Not_Brain <- Not_Brain_f.df %>%
-  plot_ly(
-    x = ~Tissue,
-    y = ~XIST,
-    split = ~Tissue,
-    type = 'violin',
-    box = list(visible = T),
-    meanline = list(visible = T)
-  ) %>% 
-  layout(
-    title = 'Violin Plots of XIST Expression in Female Tissues',
-    showlegend = FALSE,
-    xaxis = list(title = "Tissue Type"),
-    yaxis = list(title = "XIST", zeroline = F, range = c(0, 360))
-  )
-f.XIST_Not_Brain
-
-m.XIST_Not_Brain <- Not_Brain_m.df %>%
-  plot_ly(
-    x = ~Tissue,
-    y = ~XIST,
-    split = ~Tissue,
-    type = 'violin',
-    box = list(visible = T),
-    meanline = list(visible = T)
-  ) %>% 
-  layout(
-    title = 'Violin Plots of XIST Expression in Male Tissues',
-    showlegend = FALSE,
-    xaxis = list(title = "Tissue Type"),
-    yaxis = list(title = "XIST", zeroline = F, range = c(0, 30))
-  )
-m.XIST_Not_Brain
-
-#  XIST: Brain
-f.XIST_Brain <- Brain_f.df %>%
-  plot_ly(
-    x = ~Tissue,
-    y = ~XIST,
-    split = ~Tissue,
-    type = 'violin',
-    box = list(visible = T),
-    meanline = list(visible = T)
-  ) %>% 
-  layout(
-    title = 'Violin Plots of XIST Expression in Female Brain Tissues',
-    showlegend = FALSE,
-    xaxis = list(title = "Tissue Type"),
-    yaxis = list(title = "XIST", zeroline = F, range = c(0, 360))
-  )
-f.XIST_Brain
-
-m.XIST_Brain <- Brain_m.df %>%
-  plot_ly(
-    x = ~Tissue,
-    y = ~XIST,
-    split = ~Tissue,
-    type = 'violin',
-    box = list(visible = T),
-    meanline = list(visible = T)
-  ) %>% 
-  layout(
-    title = 'Violin Plots of XIST Expression in Male Brain Tissues',
-    showlegend = FALSE,
-    xaxis = list(title = "Tissue Type"),
-    yaxis = list(title = "XIST", zeroline = F, range = c(0, 30))
-  )
-m.XIST_Brain
+# Whole violin function
+Violin_Func <- function(DF, RANGE, TITLE){
+  plot <- DF %>%
+    plot_ly(
+      x = ~Tissue,
+      y = ~XIST,
+      split = ~Tissue,
+      type = 'violin',
+      box = list(visible = T),
+      meanline = list(visible = T)
+    ) %>% 
+    layout(
+      title = TITLE,
+      showlegend = FALSE,
+      xaxis = list(title = "Tissue Type"),
+      yaxis = list(title = "XIST", zeroline = F, range = RANGE)
+    )
+  return(plot)
+}
+Violin_Func(DF=Brain_f.df, RANGE=c(0, 360), TITLE='Violin Plots of XIST Expression in Female Brain Tissues')
+Violin_Func(DF=Brain_m.df, RANGE=c(0,30), TITLE='Violin Plots of XIST Expression in Male Brain Tissues')
+Violin_Func(DF=Not_Brain_m.df, RANGE=c(0,30), TITLE='Violin Plots of XIST Expression in Male Tissues')
+Violin_Func(DF=Not_Brain_f.df, RANGE=c(0, 360), TITLE='Violin Plots of XIST Expression in Female Tissues')
 
 # _________________________________________________________________________________________________________________________________
 #  Split Violin Plots 
@@ -997,42 +950,6 @@ Shared_m.df$Sex <- 'Male'   # nrow = 7040
 all.df <- rbind(Shared_f.df, Shared_m.df) # nrow = 10744; expected 
 Brain_all.df <- all.df[all.df$Tissue %in% Brain_Tissues,]
 
-# Split brain violin plot
-p <- Brain_all.df %>%
-  plot_ly(type = 'violin') %>%
-  add_trace(
-    x = ~Tissue[Brain_all.df$Sex == 'Female'],
-    y = ~MeanX[Brain_all.df$Sex == 'Female'],
-    legendgroup = 'Female',
-    scalegroup = 'Female',
-    name = 'Female',
-    side = 'negative',
-    box = list(visible = T),
-    meanline = list(visible = T),
-    line = list(color = 'darkblue'),
-    fillcolor = 'blue',
-    marker = list(fillcolor='darkblue')
-  ) %>%
-  add_trace(
-    x = ~Tissue[Brain_all.df$Sex == 'Male'],
-    y = ~MeanX[Brain_all.df$Sex == 'Male'],
-    legendgroup = 'Male',
-    scalegroup = 'Male',
-    name = 'Male',
-    side = 'positive',
-    box = list(visible = T),
-    meanline = list(visible = T),
-    line = list(color = 'darkgreen'),
-    fillcolor = 'green'
-  ) %>% 
-  layout(
-    title = "Mean X Chromosome Expression in Female and Male Brain Tissues",
-    xaxis = list(title = "Brain Tissue Types"),
-    yaxis = list(title = "Mean X Chm Read Count", zeroline = F)
-  )
-p
-
-
 # Not-Brain tissues shared between sexes; Split violin plot
 all.Not_Brain <- c("Adipose - Subcutaneous", "Muscle - Skeletal","Artery - Tibial", "Artery - Coronary",                        
                  "Heart - Atrial Appendage", "Adipose - Visceral (Omentum)", "Breast - Mammary Tissue", 
@@ -1048,42 +965,40 @@ all.Not_Brain <- c("Adipose - Subcutaneous", "Muscle - Skeletal","Artery - Tibia
 # Subset df for plots
 Not_Brain_all.df <- all.df[all.df$Tissue %in% all.Not_Brain,]
 
-p <- Not_Brain_all.df %>%
-  plot_ly(type = 'violin') %>%
-  add_trace(
-    x = ~Tissue[Not_Brain_all.df$Sex == 'Female'],
-    y = ~MeanX[Not_Brain_all.df$Sex == 'Female'],
-    legendgroup = 'Female',
-    scalegroup = 'Female',
-    name = 'Female',
-    side = 'negative',
-    box = list(visible = T),
-    meanline = list(visible = T),
-    line = list(color = 'darkblue'),
-    fillcolor = 'blue',
-    marker = list(fillcolor='darkblue')
-  ) %>%
-  add_trace(
-    x = ~Tissue[Not_Brain_all.df$Sex == 'Male'],
-    y = ~MeanX[Not_Brain_all.df$Sex == 'Male'],
-    legendgroup = 'Male',
-    scalegroup = 'Male',
-    name = 'Male',
-    side = 'positive',
-    box = list(visible = T),
-    meanline = list(visible = T),
-    line = list(color = 'darkgreen'),
-    fillcolor = 'green'
-  ) %>% 
-  layout(
-    title = "Mean X Chromosome Expression in Tissues Common to Both Sexes",
-    xaxis = list(title = "Tissue Types"),
-    yaxis = list(title = "Mean X Chm Read Count", zeroline = F),
-    violingap = 0,
-    violingroupgap = 0,
-    violinmode = 'overlay'
-  )
-p
-
-
-
+# Split violin function
+Split_Violin <- function(DF, TITLE){
+  plot <- plot_ly(data = DF, type = 'violin') %>%
+    add_trace(
+      x = ~Tissue[DF$Sex == 'Female'],
+      y = ~MeanX[DF$Sex == 'Female'],
+      legendgroup = 'Female',
+      scalegroup = 'Female',
+      name = 'Female',
+      side = 'negative',
+      box = list(visible = T),
+      meanline = list(visible = T),
+      line = list(color = 'darkblue'),
+      fillcolor = 'blue',
+      marker = list(fillcolor='darkblue')
+    ) %>%
+    add_trace(
+      x = ~Tissue[DF$Sex == 'Male'],
+      y = ~MeanX[DF$Sex == 'Male'],
+      legendgroup = 'Male',
+      scalegroup = 'Male',
+      name = 'Male',
+      side = 'positive',
+      box = list(visible = T),
+      meanline = list(visible = T),
+      line = list(color = 'darkgreen'),
+      fillcolor = 'green'
+    ) %>% 
+    layout(
+      title = TITLE,
+      xaxis = list(title = "Tissue Types"),
+      yaxis = list(title = "Mean X Chm Read Count", zeroline = F)
+    )
+  return(plot)
+}
+Split_Violin(DF=Not_Brain_all.df, TITLE="Mean X Chromosome Expression in Tissues Common to Both Sexes")
+Split_Violin(DF=Brain_all.df, TITLE="Mean X Chromosome Expression in Female and Male Brain Tissues")
