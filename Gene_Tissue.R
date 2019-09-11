@@ -1062,6 +1062,14 @@ Map(Venn_2, a='Incomplete_In_Tukiainen', b='Incomplete_In_Balaton', TITLE='Venn 
 Map(Venn_2, a='Variable_In_Tukiainen', b='Variable_In_Balaton', TITLE='Venn Diagram of Variable Genes')
 Map(Venn_2, a='Silenced_In_Tukiainen', b='Silenced_In_Balaton', TITLE='Venn Diagram of Silenced Genes')
 
-
-
+# _________________________________________________________________________________________________________________________________
+#  Scatter plot of Mean X vs XIST R2 values across female tissues
+# _________________________________________________________________________________________________________________________________
+ggplot(f.MeanX_XIST.df, aes(x=Tissue, y=R2_MeanX)) +
+  geom_point() +
+  ggtitle('Scatter plot of Mean X R2 in Female Tissues') +
+  xlab('Tissue Type') +
+  ylab('R^2 Mean X vs XIST') +
+  ylim(c(0,1)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
