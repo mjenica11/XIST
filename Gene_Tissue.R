@@ -1002,3 +1002,28 @@ Split_Violin <- function(DF, TITLE){
 }
 Split_Violin(DF=Not_Brain_all.df, TITLE="Mean X Chromosome Expression in Tissues Common to Both Sexes")
 Split_Violin(DF=Brain_all.df, TITLE="Mean X Chromosome Expression in Female and Male Brain Tissues")
+
+# _________________________________________________________________________________________________________________________________
+#  Scatter plot of correlation of MeanX and XIST vs XIST
+# _________________________________________________________________________________________________________________________________
+# df of R2_MeanX and Mean_XIST for both females and males
+Subset_f.df <- f.MeanX_XIST.df[ ,c('Tissue', 'R2_MeanX', 'Mean_XIST')]
+Common_f.df <- Subset_f.df[Subset_f.df$Tissue %in% Shared, ]
+Common_f.df$Sex <- 'Female'
+
+# Add values from males
+Subset_m.df <- m.MeanX_XIST.df[ ,c('Tissue', 'R2_MeanX', 'Mean_XIST')]
+Common_m.df <- Subset_m.df[Subset_m.df$Tissue %in% Shared, ]
+Common_m.df$Sex <- 'Male'
+
+# Combine 
+Common.df <- rbind(Common_f.df, Common_m.df)
+
+# Scatter plot
+ggplot(Common.df, aes(x=Mean_XIST, y=R2_MeanX)) +
+  geom_point(aes(shape=Sex, fill=Sex), size=2) +
+  scale_shape_manual(values=c(21,22)) +
+  scale_fill_manual(values=c('blue', 'green')) +
+  ggtitle('R2 for XIST and Mean X vs Mean XIST') +
+  xlab('Mean XIST') +
+  ylab('R2 for XIST and Mean X') 
