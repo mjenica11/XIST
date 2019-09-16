@@ -355,5 +355,75 @@ dev.off()
 # _________________________________________________________________________________________________________________________________
 #  Violin plot: R2 by gene classification scheme per tissue
 # _________________________________________________________________________________________________________________________________
+# Reshape correlation df 
+Category_Lst <- c('Silenced In Both', 'Silenced In Tukainen', 'Silenced In Balaton', 'Silenced In At Least One', 
+                  'Silenced Immune Genes', 'Variable In At Least One', 'Variable In Tukainen',
+                  'Variable In Balaton', 'Variable Immune Genes', 'Incomplete In At Least One', 'Incomplete in Tukainen',
+                  'Invariable In Balaton', 'Invariable Immune Genes', 'All Evaluated In Both', 'Not Evaluated In Either', 
+                  'Immune Genes Not Evaluated', 'PAR Genes In Balaton')
+
+Columns_Lst <- c('R2_Silenced_Mean', 'R2_Tuk_Silenced_Mean', 'R2_Bal_Silenced_Mean', 'R2_One_Silenced_Mean',
+                 'R2_Immune_Silenced_Mean', 'R2_One_Variable_Mean', 'R2_Tuk_Variable_Mean', 'R2_Bal_Variable_Mean', 
+                 'R2_Immune_Variable_Mean', 'R2_One_Incomplete_Mean', 'R2_Tuk_Incomplete_Mean', 'R2_Bal_Incomplete_Mean', 
+                 'R2_Immune_Incomplete_Mean', 'R2_All_Eval', 'R2_Not_Eval', 'R2_Immune_Not_Eval', 'R2_PAR')
+
+# Function to subset and reshape df 
+Fem_Subset <- function(SUBSET, CAT){
+  res.df <- data.frame(Tissue=f.MeanX_XIST.df[['Tissue']], R2=f.MeanX_XIST.df[[SUBSET]], Category=CAT)
+  return(res.df)
+}
+Sub_Lst.f <- Map(Fem_Subset, SUBSET=Columns_Lst, CAT=Category_Lst)
+
+Male_Subset <- function(SUBSET, CAT){
+  res.df <- data.frame(Tissue=m.MeanX_XIST.df[['Tissue']], R2=m.MeanX_XIST.df[[SUBSET]], Category=CAT)
+  return(res.df)
+}
+Sub_Lst.m <- Map(Fem_Subset, SUBSET=Columns_Lst, CAT=Category_Lst)
+
+# rbind list of dfs and add column indicating sex
+Combined.f <- rbindlist(Sub_Lst.f)
+Combined.f$Sex <- 'Female'
+
+Combined.m <- rbindlist(Sub_Lst.m)
+Combined.m$Sex <- 'Male'
+
+# bind dfs
+Correlations.df <- rbind(Combined.f, Combined.m)
+
+# Grouped violin plot
+plot <- plot_ly(data = Correlations.df, type = 'violin') %>%
+    add_trace(
+      x = ~Category[Correlations.df$Sex == 'Female'],
+      y = ~R2[Correlations.df$Sex == 'Female'],
+      legendgroup = 'Female',
+      scalegroup = 'Female',
+      name = 'Female',
+      side = 'negative',
+      box = list(visible = T),
+      meanline = list(visible = T),
+      line = list(color = 'darkblue'),
+      fillcolor = 'darkblue',
+      marker = list(color='darkblue')
+    ) %>%
+    add_trace(
+      x = ~Category[Correlations.df$Sex == 'Male'],
+      y = ~R2[Correlations.df$Sex == 'Male'],
+      legendgroup = 'Male',
+      scalegroup = 'Male',
+      name = 'Male',
+      side = 'positive',
+      box = list(visible = T),
+      meanline = list(visible = T),
+      line = list(color = 'darkgreen'),
+      fillcolor = 'lightgreen',
+      marker = list(color='darkgreen')
+    ) %>% 
+    layout(
+      title = 'Violin Plot of R^2 per Gene Subset',
+      xaxis = list(title = "Gene Subset"),
+      yaxis = list(title = "R^2", zeroline = F, range=c(0,1))
+    ) 
+plot
+
 
 
