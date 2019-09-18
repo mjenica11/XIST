@@ -846,10 +846,6 @@ Rename_Col <- function(x, a, b){
 MeanX <- Map(Combine_Unequal, a=f.tmp_MeanX_XIST, b=m.tmp_MeanX_XIST)
 MeanX <- Map(Rename_Col, x=MeanX, a='f.MeanX', b='m.MeanX')
 
-##################################
-#Check that this makes sense!
-##################################
-
 # Function to perform two-sided Wilcoxon rank sum test
 # H0: MeanX is not different b/w f/m
 # alpha: 0.05
