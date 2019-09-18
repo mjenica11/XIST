@@ -18,7 +18,6 @@ library(data.table)
 library(stringr)
 library(broom)
 library(rjson)
-library(plotly)
 
 # Read in files
 Metrics <- read_tsv(METRICS) # Contains tissue sample info
@@ -799,3 +798,76 @@ write.csv(Slopes.df, "Tissue_Slopes_Table.csv")
 #  Session Data
 # _________________________________________________________________________________________________________________________________
 save.image(file='Gene_Tissue_091119.RData')
+
+# Load session data
+load('Gene_Tissue_091119.RData')
+
+# _________________________________________________________________________________________________________________________________
+#  Wilcoxon Rank Sum Test
+# _________________________________________________________________________________________________________________________________
+# Compare MeanX in f/m tissues
+Shared <- c("Adipose - Subcutaneous", "Muscle - Skeletal","Artery - Tibial", "Artery - Coronary",                        
+            "Heart - Atrial Appendage", "Adipose - Visceral (Omentum)", "Breast - Mammary Tissue", 
+            "Skin - Not Sun Exposed (Suprapubic)", "Minor Salivary Gland", "Adrenal Gland", "Thyroid",                                  
+            "Lung", "Spleen", "Pancreas", "Esophagus - Muscularis",                   
+            "Esophagus - Mucosa", "Esophagus - Gastroesophageal Junction",
+            "Stomach", "Colon - Sigmoid","Small Intestine - Terminal Ileum", "Colon - Transverse",                       
+            "Skin - Sun Exposed (Lower leg)", "Nerve - Tibial",                           
+            "Heart - Left Ventricle", "Pituitary", "Cells - Transformed fibroblasts",          
+            "Whole Blood", "Artery - Aorta","Cells - EBV-transformed lymphocytes", "Liver",                                    
+            "Kidney - Cortex", "Bladder", "Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",                 
+            "Brain - Anterior cingulate cortex (BA24)", "Brain - Frontal Cortex (BA9)",             
+            "Brain - Cerebellar Hemisphere", "Brain - Caudate (basal ganglia)",          
+            "Brain - Nucleus accumbens (basal ganglia)", "Brain - Putamen (basal ganglia)",          
+            "Brain - Hypothalamus", "Brain - Spinal cord (cervical c-1)",       
+            "Brain - Amygdala", "Brain - Cerebellum")
+
+# Keep only shared tissues
+f.tmp_MeanX_XIST <- f.MeanX_Vs_XIST[Shared]
+m.tmp_MeanX_XIST <- m.MeanX_Vs_XIST[Shared]
+
+# Check lists are in same order
+identical(names(f.tmp_MeanX_XIST), names(m.tmp_MeanX_XIST)) # TRUE
+
+# Functions to make df by binding cols of unequal lengths 
+Combine_Unequal <- function(a, b){
+  res <- data.frame(cbind.fill(a$MeanX, b$MeanX))
+  return(res)
+}
+
+# Function to rename cols
+Rename_Col <- function(x, a, b){
+  x <- setNames(x, c(a, b))
+  return(x)
+}
+
+# Apply funcs to each df in list
+# Make df of f/m MeanX 
+MeanX <- Map(Combine_Unequal, a=f.tmp_MeanX_XIST, b=m.tmp_MeanX_XIST)
+MeanX <- Map(Rename_Col, x=MeanX, a='f.MeanX', b='m.MeanX')
+
+##################################
+#Check that this makes sense!
+##################################
+
+# Function to perform two-sided Wilcoxon rank sum test
+# H0: MeanX is not different b/w f/m
+# alpha: 0.05
+Wilcox_Func <- function(x){
+  res <- wilcox.test(x$f.MeanX, x$m.MeanX)
+  return(res)
+}
+
+# Function to get p-value
+Extract_pVal <- function(x){
+  res <- x[[3]]
+  return(res)
+}
+
+# Apply functions to list of dfs
+Wilcox_MeanX <- lapply(MeanX, Wilcox_Func)
+pVal_MeanX <- lapply(Wilcox_MeanX, Extract_pVal)
+
+# Write to table
+write.table(do.call(rbind, pVal_MeanX), quote = FALSE, row.names = TRUE, file='Wilcox_Results_MeanX.csv')
+
