@@ -784,7 +784,7 @@ write.csv(m.Regression, "Male_Tissue_Correlations.csv", row.names=FALSE)
 #  Correlations summary
 # _________________________________________________________________________________________________________________________________
 # Average R^2 of silenced genes reported in both studies for females and males
-Summary.df <- data.frame(Female=colMeans(f.Regression), Male=colMeans(m.Regression))
+Summary.df <- data.frame(Female=colMeans(f.Regression[,2:ncol(f.Regression)]), Male=colMeans(m.Regression[,2:ncol(m.Regression)]))
 write.csv(Summary.df, "Tissue_Linear_Model_Averages.csv")
 
 # _________________________________________________________________________________________________________________________________
