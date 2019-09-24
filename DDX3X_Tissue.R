@@ -5,7 +5,7 @@
 # Perform linear regression on the gene count data (version 7).
 # Find correlation between mean X chm expression/various sets of X-linked genes 
 # and othere genes per tissue across individuals. 
-setwd("~/DDX3X_Vs_TSIX/Files")
+setwd("~/XIST_Vs_TSIX/Files")
 
 # Load session data
 # load('Gene_Tissue_092319.RData')
