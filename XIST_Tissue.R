@@ -758,20 +758,14 @@ Num_Fem <- as.character(lapply(f.Tissue_Lst, Count_Rows))
 Num_Male <- as.character(lapply(m.Tissue_Lst, Count_Rows))
 
 # Add column with number of samples per tissue
-test <- cbind(Num_Tissues=Num_Fem, f.Regression) 
-
 f.Regression <- cbind(Num_Tissues=Num_Fem, f.Regression) 
 m.Regression <- cbind(Num_Tissues=Num_Male, m.Regression)
 
 # Convert Num_Tissues from factor to numeric
-test$Num_Tissues <- as.numeric(as.character(test$Num_Tissues))
-
 f.Regression$Num_Tissues <- as.numeric(as.character(f.Regression$Num_Tissues))
 m.Regression$Num_Tissues <- as.numeric(as.character(m.Regression$Num_Tissues))
 
 # Convert rest of cols from list to numeric
-test[,4:ncol(test)] <- lapply(test[,4:ncol(test)], function(x) unlist(x))
-
 f.Regression[,4:ncol(f.Regression)] <- lapply(f.Regression[,4:ncol(f.Regression)], function(x) unlist(x))
 m.Regression[,4:ncol(m.Regression)] <- lapply(m.Regression[,4:ncol(m.Regression)], function(x) unlist(x))
 
