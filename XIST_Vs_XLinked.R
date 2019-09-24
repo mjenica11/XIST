@@ -90,3 +90,77 @@ pdf('~/XIST_Vs_TSIX/Files/DDX3X/Male_DDX3X_XIST_Scatter.pdf')
 f.Scatter <- Map(Scatter_Func, LM=lm_f.DDX3X_XIST, TITLE=names(lm_f.DDX3X_XIST), XMAX=f.xmax, YMAX=f.ymax, RESULTS=Res_f.DDX3X_XIST)
 dev.off()
 
+# _________________________________________________________________________________________________________________________________
+#  Write table 1 and summary tables; Columns 37:39
+# _________________________________________________________________________________________________________________________________
+# Add col with mean(DDX3X) and sd(DDX3X)
+f.Regression$Mean_DDX3X <- lapply(f.DDX3X_Tissue_Counts, mean)
+m.Regression$Mean_DDX3X <- lapply(m.DDX3X_Tissue_Counts, mean)
+
+f.Regression$sd_DDX3X <- lapply(f.DDX3X_Tissue_Counts, sd)
+m.Regression$sd_DDX3X <- lapply(m.DDX3X_Tissue_Counts, sd)
+
+# Add column with number of tissues
+Count_Rows <- function(x){
+  res <- nrow(x)
+  return(res)
+}
+
+Num_Fem <- as.character(lapply(f.Tissue_Lst, Count_Rows))
+Num_Male <- as.character(lapply(m.Tissue_Lst, Count_Rows))
+
+# Add column with number of samples per tissue
+f.Regression <- cbind(Num_Tissues=Num_Fem, f.Regression) 
+m.Regression <- cbind(Num_Tissues=Num_Male, m.Regression)
+
+# Convert Num_Tissues from factor to numeric
+f.Regression$Num_Tissues <- as.numeric(as.character(f.Regression$Num_Tissues))
+m.Regression$Num_Tissues <- as.numeric(as.character(m.Regression$Num_Tissues))
+
+# Convert rest of cols from list to numeric
+f.Regression[,4:ncol(f.Regression)] <- lapply(f.Regression[,4:ncol(f.Regression)], function(x) unlist(x))
+m.Regression[,4:ncol(m.Regression)] <- lapply(m.Regression[,4:ncol(m.Regression)], function(x) unlist(x))
+
+# Add column indicating sample tissue type as first column
+f.Regression <- cbind(Tissue=names(f.Tissue_Lst), f.Regression) 
+m.Regression <- cbind(Tissue=names(m.Tissue_Lst), m.Regression) 
+
+# Sort by number of tissues
+f.Regression <- f.Regression[order(f.Regression$Num_Tissues, decreasing=TRUE),]
+m.Regression <- m.Regression[order(m.Regression$Num_Tissues, decreasing=TRUE),]
+
+# Write to file
+write.csv(f.Regression, "~/XIST_Vs_TSIX/Files/DDX3X/DDX3X_XIST_Fem_Tissue_Correlations.csv", row.names=FALSE)
+write.csv(m.Regression, "~/XIST_Vs_TSIX/Files/DDX3X/DDX3X_XIST_Male_Tissue_Correlations.csv", row.names=FALSE)
+
+# _________________________________________________________________________________________________________________________________
+#  Correlations summary
+# _________________________________________________________________________________________________________________________________
+# Average R^2 of silenced genes reported in both studies for females and males
+Summary.df <- data.frame(Female=colMeans(f.Regression[,2:ncol(f.Regression)]), Male=colMeans(m.Regression[,2:ncol(m.Regression)]))
+write.csv(Summary.df, "~/XIST_Vs_TSIX/Files/DDX3X/DDX3X_XIST_Tissue_Regression_Averages.csv")
+
+# _________________________________________________________________________________________________________________________________
+#  Table of Slopes
+# _________________________________________________________________________________________________________________________________
+# Get list of female and male tissue type samples
+f.Tissues <- rownames(f.Regression)
+m.Tissues <- rownames(m.Regression)
+
+# Extract list of slopes
+f.Slopes <- lapply(lm_f.DDX3X_XIST, function(x){
+  res <- x[[1]][[2]]
+  return(res)
+})
+
+m.Slopes <- lapply(lm_m.DDX3X_XIST, function(x){
+  res <- x[[1]][[2]]
+  return(res)
+})
+
+# Make and write df
+l <- list(f.Slopes, m.Slopes)
+Slopes.df <- rbindlist(l, use.names=TRUE, fill=TRUE, idcol="Sex")
+Slopes.df$Sex <- c("Female", "Male")
+
+write.csv(Slopes.df, "~/XIST_Vs_TSIX/Files/DDX3X/DDX3X_XIST_Tissue_Slopes_Table.csv")
