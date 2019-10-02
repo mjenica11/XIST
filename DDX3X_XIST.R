@@ -16,7 +16,7 @@ library(grDevices)
 library(grid)
 
 # Load session data
-load('DDX3X_Tissue_092319.RData')
+load('DDX3X_Tissue_100219.RData')
 
 # _________________________________________________________________________________________________________________________________
 #  Correlate DDX3X ~ XIST 
@@ -39,7 +39,7 @@ m.DDX3X_XIST <- Map(Rename_Col, x=m.DDX3X_XIST, a='DDX3X', b='XIST')
 
 # Apply lm to each df in list
 Linear_Model <- function(x) {
-  z <- lm(DDX3X ~ XIST, data = x, na.action = na.omit)
+  z <- lm(DDX3X ~ XIST, data = x)
   return(z)
 }
 lm_f.DDX3X_XIST <- lapply(f.DDX3X_XIST, Linear_Model)
@@ -75,7 +75,7 @@ m.ymax <- round(max(unlist(Map(Max_Func, x=m.DDX3X_XIST, y='DDX3X'))))
 
 # Scatter plots: Correlation by tissue
 Scatter_Func <- function(LM, TITLE, XMAX, YMAX, RESULTS){
-  plot(LM$model$XIST, LM$model$MeanX, main=TITLE, xlab='XIST', ylab='DDX3X',
+  plot(LM$model$XIST, LM$model$DDX3X, main=TITLE, xlab='XIST', ylab='DDX3X',
        xlim=c(0, XMAX), ylim=c(0, YMAX))
   legend("bottomright", bty="n", legend=paste("R^2: ", format(RESULTS$r_2, digits=3), "; p_Val: ", format(RESULTS$p_val, digits=3)))
   abline(LM)
@@ -87,7 +87,7 @@ f.Scatter <- Map(Scatter_Func, LM=lm_f.DDX3X_XIST, TITLE=names(lm_f.DDX3X_XIST),
 dev.off()
 
 pdf('~/XIST_Vs_TSIX/Files/DDX3X/Male_DDX3X_XIST_Scatter.pdf')
-f.Scatter <- Map(Scatter_Func, LM=lm_f.DDX3X_XIST, TITLE=names(lm_f.DDX3X_XIST), XMAX=f.xmax, YMAX=f.ymax, RESULTS=Res_f.DDX3X_XIST)
+m.Scatter <- Map(Scatter_Func, LM=lm_m.DDX3X_XIST, TITLE=names(lm_m.DDX3X_XIST), XMAX=m.xmax, YMAX=m.ymax, RESULTS=Res_m.DDX3X_XIST)
 dev.off()
 
 # _________________________________________________________________________________________________________________________________
