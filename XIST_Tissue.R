@@ -163,9 +163,9 @@ Sort_Func <- function(x){
 f.Tissue_Counts <- lapply(f.Tissue_Lst, Sort_Func)
 m.Tissue_Counts <- lapply(m.Tissue_Lst, Sort_Func)
 
-# ______________________________________________________________________________
+# _________________________________________________________________________________________________________________________________
 # Check for empty data frames, remove sample replicates, and drop XIST.
-# ______________________________________________________________________________
+# _________________________________________________________________________________________________________________________________
 # Remove sample replicates
 Drop_Replicates <- function(x){
   x <- x[, !(names(x) %in% Sample_Replicates)]
@@ -263,12 +263,12 @@ f.MeanX_Vs_XIST <- Map(Rename_Col, x=f.MeanX_Vs_XIST, a='MeanX', b='XIST')
 m.MeanX_Vs_XIST <- Map(Rename_Col, x=m.MeanX_Vs_XIST, a='MeanX', b='XIST')
 
 # Apply lm to each df in list
-Linear_Model <- function(x) {
-  z <- lm(MeanX ~ XIST, data = x, na.action = na.omit)
+Linear_Model.1 <- function(x) {
+  z <- lm(MeanX ~ XIST, data = x)
   return(z)
 }
-lm_f.MeanX_XIST <- lapply(f.MeanX_Vs_XIST, Linear_Model)
-lm_m.MeanX_XIST <- lapply(m.MeanX_Vs_XIST, Linear_Model)
+lm_f.MeanX_XIST <- lapply(f.MeanX_Vs_XIST, Linear_Model.1)
+lm_m.MeanX_XIST <- lapply(m.MeanX_Vs_XIST, Linear_Model.1)
 
 # Function to extract r squared values
 Regression_Res <- function(lm){ # expecting object of class 'lm'
@@ -359,22 +359,22 @@ m.One_Silenced_Mean_Vs_XIST <- Map(Rename_Col, x=m.One_Silenced_Mean_Vs_XIST, a=
 m.Immune_Silenced_Mean_Vs_XIST <- Map(Rename_Col, x=m.Immune_Silenced_Mean_Vs_XIST, a='Mean_Silenced', b='XIST')
 
 # Apply lm to each df in list
-Linear_Model <- function(x) {
-  z <- lm(Mean_Silenced ~ XIST, data = x, na.action = na.omit)
+Linear_Model.2 <- function(x) {
+  z <- lm(Mean_Silenced ~ XIST, data = x)
   return(z)
 }
 
-f.lm_Silenced_XIST <- lapply(f.Silenced_Mean_Vs_XIST, Linear_Model)
-f.lm_Tuk_Silenced_XIST <- lapply(f.Tuk_Silenced_Mean_Vs_XIST, Linear_Model)
-f.lm_Bal_Silenced_XIST <- lapply(f.Bal_Silenced_Mean_Vs_XIST, Linear_Model)
-f.lm_One_Silenced_XIST <- lapply(f.One_Silenced_Mean_Vs_XIST, Linear_Model)
-f.lm_Immune_Silenced_XIST <- lapply(f.Immune_Silenced_Mean_Vs_XIST, Linear_Model)
+f.lm_Silenced_XIST <- lapply(f.Silenced_Mean_Vs_XIST, Linear_Model.2)
+f.lm_Tuk_Silenced_XIST <- lapply(f.Tuk_Silenced_Mean_Vs_XIST, Linear_Model.2)
+f.lm_Bal_Silenced_XIST <- lapply(f.Bal_Silenced_Mean_Vs_XIST, Linear_Model.2)
+f.lm_One_Silenced_XIST <- lapply(f.One_Silenced_Mean_Vs_XIST, Linear_Model.2)
+f.lm_Immune_Silenced_XIST <- lapply(f.Immune_Silenced_Mean_Vs_XIST, Linear_Model.2)
 
-m.lm_Silenced_XIST <- lapply(m.Silenced_Mean_Vs_XIST, Linear_Model)
-m.lm_Tuk_Silenced_XIST <- lapply(m.Tuk_Silenced_Mean_Vs_XIST, Linear_Model)
-m.lm_Bal_Silenced_XIST <- lapply(m.Bal_Silenced_Mean_Vs_XIST, Linear_Model)
-m.lm_One_Silenced_XIST <- lapply(m.One_Silenced_Mean_Vs_XIST, Linear_Model)
-m.lm_Immune_Silenced_XIST <- lapply(m.Immune_Silenced_Mean_Vs_XIST, Linear_Model)
+m.lm_Silenced_XIST <- lapply(m.Silenced_Mean_Vs_XIST, Linear_Model.2)
+m.lm_Tuk_Silenced_XIST <- lapply(m.Tuk_Silenced_Mean_Vs_XIST, Linear_Model.2)
+m.lm_Bal_Silenced_XIST <- lapply(m.Bal_Silenced_Mean_Vs_XIST, Linear_Model.2)
+m.lm_One_Silenced_XIST <- lapply(m.One_Silenced_Mean_Vs_XIST, Linear_Model.2)
+m.lm_Immune_Silenced_XIST <- lapply(m.Immune_Silenced_Mean_Vs_XIST, Linear_Model.2)
 
 # Apply function to list of dfs
 f.Res_Silenced_XIST <- lapply(f.lm_Silenced_XIST, Regression_Res)
@@ -482,20 +482,20 @@ m.Bal_Mean_Variable_Vs_XIST <- Map(Rename_Col, x=m.Bal_Mean_Variable_Vs_XIST, a=
 m.Immune_Mean_Variable_Vs_XIST <- Map(Rename_Col, x=m.Immune_Mean_Variable_Vs_XIST, a='Mean_Variable', b='XIST')
 
 # Apply lm to each df in list
-Linear_Model <- function(x) {
-  z <- lm(Mean_Variable ~ XIST, data = x, na.action = na.omit)
+Linear_Model.3 <- function(x) {
+  z <- lm(Mean_Variable ~ XIST, data = x)
   return(z)
 }
 
-f.lm_One_Variable_XIST <- lapply(f.One_Mean_Variable_Vs_XIST, Linear_Model)
-f.lm_Tuk_Variable_XIST <- lapply(f.Tuk_Mean_Variable_Vs_XIST, Linear_Model)  
-f.lm_Bal_Variable_XIST <- lapply(f.Bal_Mean_Variable_Vs_XIST, Linear_Model)  
-f.lm_Immune_Variable_XIST <- lapply(f.Immune_Mean_Variable_Vs_XIST, Linear_Model)  
+f.lm_One_Variable_XIST <- lapply(f.One_Mean_Variable_Vs_XIST, Linear_Model.3)
+f.lm_Tuk_Variable_XIST <- lapply(f.Tuk_Mean_Variable_Vs_XIST, Linear_Model.3)  
+f.lm_Bal_Variable_XIST <- lapply(f.Bal_Mean_Variable_Vs_XIST, Linear_Model.3)  
+f.lm_Immune_Variable_XIST <- lapply(f.Immune_Mean_Variable_Vs_XIST, Linear_Model.3)  
 
-m.lm_One_Variable_XIST <- lapply(m.One_Mean_Variable_Vs_XIST, Linear_Model)
-m.lm_Tuk_Variable_XIST <- lapply(m.Tuk_Mean_Variable_Vs_XIST, Linear_Model)  
-m.lm_Bal_Variable_XIST <- lapply(m.Bal_Mean_Variable_Vs_XIST, Linear_Model)  
-m.lm_Immune_Variable_XIST <- lapply(m.Immune_Mean_Variable_Vs_XIST, Linear_Model) 
+m.lm_One_Variable_XIST <- lapply(m.One_Mean_Variable_Vs_XIST, Linear_Model.3)
+m.lm_Tuk_Variable_XIST <- lapply(m.Tuk_Mean_Variable_Vs_XIST, Linear_Model.3)  
+m.lm_Bal_Variable_XIST <- lapply(m.Bal_Mean_Variable_Vs_XIST, Linear_Model.3)  
+m.lm_Immune_Variable_XIST <- lapply(m.Immune_Mean_Variable_Vs_XIST, Linear_Model.3) 
 
 # Apply function to list of dfs
 f.Res_One_Variable_XIST <- lapply(f.lm_One_Variable_XIST, Regression_Res)
@@ -584,20 +584,20 @@ m.Bal_Mean_Incomplete_Vs_XIST <- Map(Rename_Col, x=m.Bal_Mean_Incomplete_Vs_XIST
 m.Immune_Mean_Incomplete_Vs_XIST <- Map(Rename_Col, x=m.Immune_Mean_Incomplete_Vs_XIST, a='Mean_Incomplete', b='XIST') 
 
 # Apply lm to each df in list
-Linear_Model <- function(x) {
-  z <- lm(Mean_Incomplete ~ XIST, data = x, na.action = na.omit)
+Linear_Model.4 <- function(x) {
+  z <- lm(Mean_Incomplete ~ XIST, data = x)
   return(z)
 }
 
-f.lm_One_Incomplete_XIST <- lapply(f.One_Mean_Incomplete_Vs_XIST, Linear_Model)
-f.lm_Tuk_Incomplete_XIST <- lapply(f.Tuk_Mean_Incomplete_Vs_XIST, Linear_Model)
-f.lm_Bal_Incomplete_XIST <- lapply(f.Bal_Mean_Incomplete_Vs_XIST, Linear_Model)
-f.lm_Immune_Incomplete_XIST <- lapply(f.Immune_Mean_Incomplete_Vs_XIST, Linear_Model)
+f.lm_One_Incomplete_XIST <- lapply(f.One_Mean_Incomplete_Vs_XIST, Linear_Model.4)
+f.lm_Tuk_Incomplete_XIST <- lapply(f.Tuk_Mean_Incomplete_Vs_XIST, Linear_Model.4)
+f.lm_Bal_Incomplete_XIST <- lapply(f.Bal_Mean_Incomplete_Vs_XIST, Linear_Model.4)
+f.lm_Immune_Incomplete_XIST <- lapply(f.Immune_Mean_Incomplete_Vs_XIST, Linear_Model.4)
 
-m.lm_One_Incomplete_XIST <- lapply(m.One_Mean_Incomplete_Vs_XIST, Linear_Model)
-m.lm_Tuk_Incomplete_XIST <- lapply(m.Tuk_Mean_Incomplete_Vs_XIST, Linear_Model)
-m.lm_Bal_Incomplete_XIST <- lapply(m.Bal_Mean_Incomplete_Vs_XIST, Linear_Model)
-m.lm_Immune_Incomplete_XIST <- lapply(m.Immune_Mean_Incomplete_Vs_XIST, Linear_Model)
+m.lm_One_Incomplete_XIST <- lapply(m.One_Mean_Incomplete_Vs_XIST, Linear_Model.4)
+m.lm_Tuk_Incomplete_XIST <- lapply(m.Tuk_Mean_Incomplete_Vs_XIST, Linear_Model.4)
+m.lm_Bal_Incomplete_XIST <- lapply(m.Bal_Mean_Incomplete_Vs_XIST, Linear_Model.4)
+m.lm_Immune_Incomplete_XIST <- lapply(m.Immune_Mean_Incomplete_Vs_XIST, Linear_Model.4)
 
 # Apply function to list of dfs
 f.Res_One_Incomplete_XIST <- lapply(f.lm_One_Incomplete_XIST, Regression_Res)
@@ -687,20 +687,20 @@ m.Immune_Not_Eval_Mean_Vs_XIST <- Map(Rename_Col, x=m.Immune_Not_Eval_Mean_Vs_XI
 m.PAR_Mean_Vs_XIST <- Map(Rename_Col, m.PAR_Mean_Vs_XIST, a='Misc', b='XIST') 
 
 # Apply lm to each df in list
-Linear_Model <- function(x) {
-  z <- lm(Misc ~ XIST, data = x, na.action = na.omit)
+Linear_Model.5 <- function(x) {
+  z <- lm(Misc ~ XIST, data = x)
   return(z)
 }
 
-f.lm_All_Eval <- lapply(f.All_Eval_Mean_Vs_XIST, Linear_Model)
-f.lm_Not_Eval <- lapply(f.Not_Eval_Mean_Vs_XIST, Linear_Model)
-f.lm_Immune_Not_Eval <- lapply(f.Immune_Not_Eval_Mean_Vs_XIST, Linear_Model)
-f.lm_PAR <- lapply(f.PAR_Mean_Vs_XIST, Linear_Model)
+f.lm_All_Eval <- lapply(f.All_Eval_Mean_Vs_XIST, Linear_Model.5)
+f.lm_Not_Eval <- lapply(f.Not_Eval_Mean_Vs_XIST, Linear_Model.5)
+f.lm_Immune_Not_Eval <- lapply(f.Immune_Not_Eval_Mean_Vs_XIST, Linear_Model.5)
+f.lm_PAR <- lapply(f.PAR_Mean_Vs_XIST, Linear_Model.5)
 
-m.lm_All_Eval <- lapply(m.All_Eval_Mean_Vs_XIST, Linear_Model)
-m.lm_Not_Eval <- lapply(m.Not_Eval_Mean_Vs_XIST, Linear_Model)
-m.lm_Immune_Not_Eval <- lapply(m.Immune_Not_Eval_Mean_Vs_XIST, Linear_Model)
-m.lm_PAR <- lapply(m.PAR_Mean_Vs_XIST, Linear_Model)
+m.lm_All_Eval <- lapply(m.All_Eval_Mean_Vs_XIST, Linear_Model.5)
+m.lm_Not_Eval <- lapply(m.Not_Eval_Mean_Vs_XIST, Linear_Model.5)
+m.lm_Immune_Not_Eval <- lapply(m.Immune_Not_Eval_Mean_Vs_XIST, Linear_Model.5)
+m.lm_PAR <- lapply(m.PAR_Mean_Vs_XIST, Linear_Model.5)
 
 # Apply function to list of dfs
 f.Res_All_Eval <- lapply(f.lm_All_Eval, Regression_Res)
