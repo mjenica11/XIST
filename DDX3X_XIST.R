@@ -1,5 +1,13 @@
 # Plots related to tissue linear model results
-setwd("~/XIST_Vs_TSIX/Files")
+setwd("~/XIST")
+
+# Constants
+SCATTER.f <- '~/XIST/Tissue/DDX3X_XIST/Fem_Scatter.tiff'
+SCATTER.m <- '~/XIST/Tissue/DDX3X_XIST/Male_Scatter.tiff'
+CORRELATION.f <- "~/XIST/Tissue/DDX3X_XIST/Fem_Tissue_Correlations.csv"
+CORRELATION.m <- "~/XIST/Tissue/DDX3X_XIST/Male_Tissue_Correlations.csv"
+SUMMARY <- "~/XIST/Tissue/DDX3X_XIST/Tissue_Regression_Averages.csv"
+SLOPES <- "~/XIST/Tissue/DDX3X_XIST/Tissue_Slopes_Table.csv"
 
 # Load libraries
 library(readr) 
@@ -16,11 +24,11 @@ library(grDevices)
 library(grid)
 
 # Load session data
-load('DDX3X_Tissue_100219.RData')
+load('DDX3X_Gene_Tissue_112119.RData')
 
-# _________________________________________________________________________________________________________________________________
+# ______________________________________________________________________________________________________________________
 #  Correlate DDX3X ~ XIST 
-# _________________________________________________________________________________________________________________________________
+# ______________________________________________________________________________________________________________________
 # Get XIST values from each data frame
 Get_XIST <- function(x){
   res <- as.numeric(x[which(x['gene_name'] == 'XIST'),][,-c(1:2)]) # drop gene_id and gene_name cols
@@ -30,12 +38,22 @@ f.XIST_Tissue_Counts <- lapply(f.Tissue_Counts, Get_XIST)
 m.XIST_Tissue_Counts <- lapply(m.Tissue_Counts, Get_XIST)
 
 # Cmbine vectors into df
-f.DDX3X_XIST <- Combine_Lsts(x='f.DDX3X_XIST', y=f.DDX3X_Tissue_Counts, z=f.XIST_Tissue_Counts)
-m.DDX3X_XIST <- Combine_Lsts(x='m.DDX3X_XIST', y=m.DDX3X_Tissue_Counts, z=m.XIST_Tissue_Counts)
+f.DDX3X_XIST <- Combine_Lsts(x='f.DDX3X_XIST', 
+                             y=f.DDX3X_Tissue_Counts, 
+                             z=f.XIST_Tissue_Counts)
+m.DDX3X_XIST <- Combine_Lsts(x='m.DDX3X_XIST', 
+                             y=m.DDX3X_Tissue_Counts, 
+                             z=m.XIST_Tissue_Counts)
 
 # Rename col names in each df
-f.DDX3X_XIST <- Map(Rename_Col, x=f.DDX3X_XIST, a='DDX3X', b='XIST')
-m.DDX3X_XIST <- Map(Rename_Col, x=m.DDX3X_XIST, a='DDX3X', b='XIST')
+f.DDX3X_XIST <- Map(Rename_Col, 
+                    x=f.DDX3X_XIST,
+                    a='DDX3X', 
+                    b='XIST')
+m.DDX3X_XIST <- Map(Rename_Col, 
+                    x=m.DDX3X_XIST, 
+                    a='DDX3X', 
+                    b='XIST')
 
 # Apply lm to each df in list
 Linear_Model <- function(x) {
@@ -57,9 +75,9 @@ m.Regression <- as.data.frame(do.call(rbind, Res_m.DDX3X_XIST))
 colnames(f.Regression) <- c("pval_DDX3X", "R2_DDX3X")
 colnames(m.Regression) <- c("pval_DDX3X","R2_DDX3X")
 
-# _________________________________________________________________________________________________________________________________
+# ______________________________________________________________________________________________________________________
 #  Plot DDX3X ~ XIST
-# _________________________________________________________________________________________________________________________________
+# ______________________________________________________________________________________________________________________
 # Find the max x/y values to set as x/y lim
 Max_Func <- function(x, y){
   lim <- max(x[[y]])
@@ -77,17 +95,32 @@ m.ymax <- round(max(unlist(Map(Max_Func, x=m.DDX3X_XIST, y='DDX3X'))))
 Scatter_Func <- function(LM, TITLE, XMAX, YMAX, RESULTS){
   plot(LM$model$XIST, LM$model$DDX3X, main=TITLE, xlab='XIST', ylab='DDX3X',
        xlim=c(0, XMAX), ylim=c(0, YMAX))
-  legend("bottomright", bty="n", legend=paste("R^2: ", format(RESULTS$r_2, digits=3), "; p_Val: ", format(RESULTS$p_val, digits=3)))
+  legend("bottomright", 
+         bty="n", 
+         legend=paste("R^2: ", 
+                      format(RESULTS$r_2, digits=3), 
+                      "; p_Val: ", 
+                      format(RESULTS$p_val, digits=3)))
   abline(LM)
 }
 
 # Print plots
-pdf('~/XIST_Vs_TSIX/Files/DDX3X/Fem_DDX3X_XIST_Scatter.pdf')
-f.Scatter <- Map(Scatter_Func, LM=lm_f.DDX3X_XIST, TITLE=names(lm_f.DDX3X_XIST), XMAX=f.xmax, YMAX=f.ymax, RESULTS=Res_f.DDX3X_XIST)
+tiff(SCATTER.f, width = 500, heigh = 500)
+f.Scatter <- Map(Scatter_Func, 
+                 LM=lm_f.DDX3X_XIST, 
+                 TITLE=names(lm_f.DDX3X_XIST), 
+                 XMAX=f.xmax, 
+                 YMAX=f.ymax, 
+                 RESULTS=Res_f.DDX3X_XIST)
 dev.off()
 
-pdf('~/XIST_Vs_TSIX/Files/DDX3X/Male_DDX3X_XIST_Scatter.pdf')
-m.Scatter <- Map(Scatter_Func, LM=lm_m.DDX3X_XIST, TITLE=names(lm_m.DDX3X_XIST), XMAX=m.xmax, YMAX=m.ymax, RESULTS=Res_m.DDX3X_XIST)
+tiff(SCATTER.m, width = 500, heigh = 500)
+m.Scatter <- Map(Scatter_Func, 
+                 LM=lm_m.DDX3X_XIST, 
+                 TITLE=names(lm_m.DDX3X_XIST), 
+                 XMAX=m.xmax, 
+                 YMAX=m.ymax, 
+                 RESULTS=Res_m.DDX3X_XIST)
 dev.off()
 
 # _________________________________________________________________________________________________________________________________
@@ -130,15 +163,16 @@ f.Regression <- f.Regression[order(f.Regression$Num_Tissues, decreasing=TRUE),]
 m.Regression <- m.Regression[order(m.Regression$Num_Tissues, decreasing=TRUE),]
 
 # Write to file
-write.csv(f.Regression, "~/XIST_Vs_TSIX/Files/DDX3X/DDX3X_XIST_Fem_Tissue_Correlations.csv", row.names=FALSE)
-write.csv(m.Regression, "~/XIST_Vs_TSIX/Files/DDX3X/DDX3X_XIST_Male_Tissue_Correlations.csv", row.names=FALSE)
+write.csv(f.Regression, CORRELATION.f, row.names=FALSE)
+write.csv(m.Regression, CORRELATION.m, row.names=FALSE)
 
 # _________________________________________________________________________________________________________________________________
 #  Correlations summary
 # _________________________________________________________________________________________________________________________________
 # Average R^2 of silenced genes reported in both studies for females and males
-Summary.df <- data.frame(Female=colMeans(f.Regression[,2:ncol(f.Regression)]), Male=colMeans(m.Regression[,2:ncol(m.Regression)]))
-write.csv(Summary.df, "~/XIST_Vs_TSIX/Files/DDX3X/DDX3X_XIST_Tissue_Regression_Averages.csv")
+Summary.df <- data.frame(Female=colMeans(f.Regression[,2:ncol(f.Regression)]),
+                         Male=colMeans(m.Regression[,2:ncol(m.Regression)]))
+write.csv(Summary.df, SUMMARY)
 
 # _________________________________________________________________________________________________________________________________
 #  Table of Slopes
@@ -163,5 +197,5 @@ l <- list(f.Slopes, m.Slopes)
 Slopes.df <- rbindlist(l, use.names=TRUE, fill=TRUE, idcol="Sex")
 Slopes.df$Sex <- c("Female", "Male")
 
-write.csv(Slopes.df, "~/XIST_Vs_TSIX/Files/DDX3X/DDX3X_XIST_Tissue_Slopes_Table.csv")
+write.csv(Slopes.df, SLOPES)
 
