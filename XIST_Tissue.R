@@ -12,9 +12,11 @@ GENCODE <- "gencode.v19.genes.v7.patched_contigs.gff3"
 GENE_LST <- "~/XIST/Files/X_Genes_Status.json"
 
 # Results
-AVG <- "~/XIST/Tissue/Tissue_Linear_Model_Averages.csv"
-SLOPES <- "~/XIST/Tissue/Tissue_Slopes_Table.csv"
-WILCOX <- "~/XIST/Tissue/Wilcox_Results_MeanX.csv"
+AVG <- "~/XIST/Tissue/XIST/Tissue_Linear_Model_Averages.csv"
+SLOPES <- "~/XIST/Tissue/XIST/Tissue_Slopes_Table.csv"
+WILCOX <- "~/XIST/Tissue/XIST/Wilcox_Results_MeanX.csv"
+LM_FEM <- "~/XIST/Tissue/XIST/Female_Tissue_Correlations.csv"
+LM_MALE <- "~/XIST/Tissue/XIST/Male_Tissue_Correlations.csv"
 
 # Load libraries
 library(readr) 
@@ -1026,8 +1028,8 @@ f.Regression <- f.Regression[order(f.Regression$Num_Tissues, decreasing=TRUE),]
 m.Regression <- m.Regression[order(m.Regression$Num_Tissues, decreasing=TRUE),]
 
 # Write to file
-# write.csv(f.Regression, "Female_Tissue_Correlations.csv", row.names=FALSE)
-# write.csv(m.Regression, "Male_Tissue_Correlations.csv", row.names=FALSE)
+write.csv(f.Regression, LM_FEM, row.names=FALSE)
+write.csv(m.Regression, LM_MALE, row.names=FALSE)
 
 # ______________________________________________________________________________________________________________________
 #  Correlations summary
