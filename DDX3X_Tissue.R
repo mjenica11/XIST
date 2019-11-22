@@ -18,6 +18,9 @@ WILCOX <- "~/XIST/Tissue/DDX3X/Wilcox_Results_MeanX.csv"
 LM_FEM <- "~/XIST/Tissue/DDX3X/Female_Tissue_Correlations.csv"
 LM_MALE <- "~/XIST/Tissue/DDX3X/Male_Tissue_Correlations.csv"
 
+# Session data
+DATA <- "DDX3X_Gene_Tissue_112119.RData"
+
 # Load libraries
 library(readr) 
 library(refGenome) # Parse .gff file
@@ -1145,5 +1148,5 @@ write.table(do.call(rbind, pVal_MeanX), quote = FALSE, row.names = TRUE, file=WI
 # ______________________________________________________________________________________________________________________
 #  Session Data
 # ______________________________________________________________________________________________________________________
-save.image(file='DDX3X_Gene_Tissue_112119.RData')
+save.image(file=DATA)
 
