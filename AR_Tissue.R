@@ -15,8 +15,8 @@ GENE_LST <- "~/XIST/Files/X_Genes_Status.json"
 AVG <- "~/XIST/Tissue/AR/Tissue_Linear_Model_Averages.csv"
 SLOPES <- "~/XIST/Tissue/AR/Tissue_Slopes_Table.csv"
 WILCOX <- "~/XIST/Tissue/AR/Wilcox_Results_MeanX.csv"
-AR_FEM <- "~/XIST/Tissue/AR/Female_Tissue_Correlations.csv"
-AR_MALE <- "~/XIST/Tissue/AR/Male_Tissue_Correlations.csv"
+LM_FEM <- "~/XIST/Tissue/AR/Female_Tissue_Correlations.csv"
+LM_MALE <- "~/XIST/Tissue/AR/Male_Tissue_Correlations.csv"
 
 # Load libraries
 library(readr) 
