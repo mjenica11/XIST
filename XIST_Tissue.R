@@ -1031,8 +1031,8 @@ f.Regression <- f.Regression[order(f.Regression$Num_Tissues, decreasing=TRUE),]
 m.Regression <- m.Regression[order(m.Regression$Num_Tissues, decreasing=TRUE),]
 
 # Write to file
-write.csv(f.Regression, LM_FEM, row.names=FALSE)
-write.csv(m.Regression, LM_MALE, row.names=FALSE)
+# write.csv(f.Regression, LM_FEM, row.names=FALSE)
+# write.csv(m.Regression, LM_MALE, row.names=FALSE)
 
 # ______________________________________________________________________________________________________________________
 #  Correlations summary
@@ -1040,7 +1040,7 @@ write.csv(m.Regression, LM_MALE, row.names=FALSE)
 # Average R^2 of silenced genes reported in both studies for females and males
 Summary.df <- data.frame(Female=colMeans(f.Regression[,2:ncol(f.Regression)]),
                          Male=colMeans(m.Regression[,2:ncol(m.Regression)]))
-write.csv(Summary.df, AVG)
+#write.csv(Summary.df, AVG)
 
 # ______________________________________________________________________________________________________________________
 #  Table of Slopes
@@ -1065,7 +1065,7 @@ l <- list(f.Slopes, m.Slopes)
 Slopes.df <- rbindlist(l, use.names=TRUE, fill=TRUE, idcol="Sex")
 Slopes.df$Sex <- c("Female", "Male")
 
-write.csv(Slopes.df, SLOPES)
+#write.csv(Slopes.df, SLOPES)
 
 # ______________________________________________________________________________________________________________________
 #  Wilcoxon Rank Sum Test
@@ -1142,11 +1142,18 @@ Extract_pVal <- function(x){
 Wilcox_MeanX <- lapply(MeanX, Wilcox_Func)
 pVal_MeanX <- lapply(Wilcox_MeanX, Extract_pVal)
 
+# Convert named list to df
+pVal.df <- stack(pVal_MeanX)
+
+# Switch df column order and rename cols
+pVal.df <- pVal.df[,c(2,1)]
+colnames(pVal.df) <- c('Tissue', 'Wilcox_pVal')
+
 # Write to table
-write.table(do.call(rbind, pVal_MeanX), quote = FALSE, row.names = TRUE, file=WILCOX)
+write.csv(pVal.df, file=WILCOX)
 
 # ______________________________________________________________________________________________________________________
 #  Session Data
 # ______________________________________________________________________________________________________________________
-save.image(file=DATA)
+#save.image(file=DATA)
 
