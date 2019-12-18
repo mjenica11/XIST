@@ -14,6 +14,9 @@ GENE_LST <- "~/XIST/Files/X_Genes_Status.json"
 # Results
 TABLE <- "~/XIST/Indiv/Individual_Correlations.csv"
 
+# Data 
+DATA <- "XIST_Indiv_121719.RData"
+
 # Load libraries
 library(readr)
 library(refGenome) # Parse .gff file
@@ -97,6 +100,31 @@ names(Gene_Cts)[1:2] <- c("gene_id", "gene_name")
 # Remove decimals in gene IDs in gene counts df
 Gene_Cts$gene_id <- sub("\\.\\d+$", "", Gene_Cts$gene_id)
 
+# Keep genes with TPM > 5, excluding XIST
+# Store XIST count row
+tmp <- Gene_Cts[Gene_Cts$gene_name=='XIST',]
+
+# tester <- Gene_Cts[1:20,1:20]
+# tester.1 <- tester[apply(tester[,3:ncol(tester)], MARGIN=1, function(x) all(x>0)),]
+# View(tester.1)
+
+# Filter for genes with TPM > 5, excluding XIST
+Gene_Cts.5 <- Gene_Cts[apply(Gene_Cts[,3:ncol(Gene_Cts)], MARGIN=1, function(x) all(x>5)),] # Skip first 2 cols
+Gene_Cts.3 <- Gene_Cts[apply(Gene_Cts[,3:ncol(Gene_Cts)], MARGIN=1, function(x) all(x>3)),] # Skip first 2 cols
+Gene_Cts.1 <- Gene_Cts[apply(Gene_Cts[,3:ncol(Gene_Cts)], MARGIN=1, function(x) all(x>1)),] # Skip first 2 cols
+
+# How many genes before TPM filter?
+nrow(Gene_Cts) # 56,202
+
+# How many genes left after TPM filter?
+nrow(Gene_Cts.1) # TPM > 1 --> 2,591
+nrow(Gene_Cts.3) # TPM > 3 --> 792
+nrow(Gene_Cts.5) # TPM > 5 --> 404
+
+
+# Add XIST back to df
+Gene_Cts <- rbind(Gene_Cts, tmp)
+
 # Sort count data into list of dfs by individual IDs
 Ind_Counts <- lapply(Individual_IDs, function(x) {
   # Get col index that contains individuals GTEx ID
@@ -136,7 +164,7 @@ Ind_XCounts <- lapply(Ind_Counts, function(x) {
 })
 
 # Check for missing values
-sapply(Ind_XCounts, function(x) sum(is.na(x)))
+any(sapply(Ind_XCounts, function(x) sum(is.na(x)))) # FALSE
 
 # Get the mean values of the X chm genes
 Mean_Ind_XCounts <- lapply(Ind_XCounts, function(x){
@@ -649,6 +677,6 @@ write.csv(Regression, TABLE, row.names=TRUE)
 # ______________________________________________________________________________________________________________________
 #  Session data
 # ______________________________________________________________________________________________________________________
-save.image(file='XIST_Indiv_112019.RData')
+save.image(file=DATA)
 
 
