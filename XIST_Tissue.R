@@ -12,14 +12,11 @@ GENCODE <- "gencode.v19.genes.v7.patched_contigs.gff3"
 GENE_LST <- "~/XIST/Files/X_Genes_Status.json"
 
 # Results
-AVG <- "~/XIST/Tissue/Tissue_Linear_Model_Averages.csv"
-SLOPES <- "~/XIST/Tissue/Tissue_Slopes_Table.csv"
-WILCOX <- "~/XIST/Tissue/Wilcox_Results_MeanX.csv"
 LM_FEM <- "~/XIST/Tissue/Female_Tissue_Correlations.csv"
 LM_MALE <- "~/XIST/Tissue/Male_Tissue_Correlations.csv"
 
 # Session data 
-DATA <- "~/XIST/Gene_Tissue_121819.RData"
+DATA <- "~/XIST/Gene_Tissue_121919.RData"
 
 # Load libraries
 library(readr) 
@@ -1033,124 +1030,6 @@ m.Regression <- m.Regression[order(m.Regression$Num_Tissues, decreasing=TRUE),]
 # Write to file
 write.csv(f.Regression, LM_FEM, row.names=FALSE)
 write.csv(m.Regression, LM_MALE, row.names=FALSE)
-
-# ______________________________________________________________________________________________________________________
-#  Correlations summary
-# ______________________________________________________________________________________________________________________
-# Average R^2 of silenced genes reported in both studies for females and males
-Summary.df <- data.frame(Female=colMeans(f.Regression[,2:ncol(f.Regression)]),
-                         Male=colMeans(m.Regression[,2:ncol(m.Regression)]))
-write.csv(Summary.df, AVG)
-
-# ______________________________________________________________________________________________________________________
-#  Table of Slopes
-# ______________________________________________________________________________________________________________________
-# Get list of female and male tissue type samples
-f.Tissues <- rownames(f.Regression)
-m.Tissues <- rownames(m.Regression)
-
-# Extract list of slopes
-f.Slopes <- lapply(lm_f.MeanX_XIST, function(x){
-  res <- x[[1]][[2]]
-  return(res)
-})
-
-m.Slopes <- lapply(lm_m.MeanX_XIST, function(x){
-  res <- x[[1]][[2]]
-  return(res)
-})
-
-# Make and write df
-l <- list(f.Slopes, m.Slopes)
-Slopes.df <- rbindlist(l, use.names=TRUE, fill=TRUE, idcol="Sex")
-Slopes.df$Sex <- c("Female", "Male")
-
-write.csv(Slopes.df, SLOPES)
-
-# ______________________________________________________________________________________________________________________
-#  Wilcoxon Rank Sum Test
-# ______________________________________________________________________________________________________________________
-# Compare MeanX in f/m tissues
-Shared <- c("Adipose - Subcutaneous", "Muscle - Skeletal","Artery - Tibial", "Artery - Coronary",                        
-            "Heart - Atrial Appendage", "Adipose - Visceral (Omentum)", "Breast - Mammary Tissue", 
-            "Skin - Not Sun Exposed (Suprapubic)", "Minor Salivary Gland", "Adrenal Gland", "Thyroid",                                  
-            "Lung", "Spleen", "Pancreas", "Esophagus - Muscularis",                   
-            "Esophagus - Mucosa", "Esophagus - Gastroesophageal Junction",
-            "Stomach", "Colon - Sigmoid","Small Intestine - Terminal Ileum", "Colon - Transverse",                       
-            "Skin - Sun Exposed (Lower leg)", "Nerve - Tibial",                           
-            "Heart - Left Ventricle", "Pituitary", "Cells - Transformed fibroblasts",          
-            "Whole Blood", "Artery - Aorta","Cells - EBV-transformed lymphocytes", "Liver",                                    
-            "Kidney - Cortex", "Bladder", "Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",                 
-            "Brain - Anterior cingulate cortex (BA24)", "Brain - Frontal Cortex (BA9)",             
-            "Brain - Cerebellar Hemisphere", "Brain - Caudate (basal ganglia)",          
-            "Brain - Nucleus accumbens (basal ganglia)", "Brain - Putamen (basal ganglia)",          
-            "Brain - Hypothalamus", "Brain - Spinal cord (cervical c-1)",       
-            "Brain - Amygdala", "Brain - Cerebellum")
-
-# Keep only shared tissues
-f.tmp_MeanX_XIST <- f.MeanX_Vs_XIST[Shared]
-m.tmp_MeanX_XIST <- m.MeanX_Vs_XIST[Shared]
-
-# Check lists are in same order
-identical(names(f.tmp_MeanX_XIST), names(m.tmp_MeanX_XIST)) # TRUE
-
-# Functions to make df by binding cols of unequal lengths 
-# Add lists of unequal lengths as columns to df
-cbind.fill <- function(...){
-  nm <- list(...) 
-  nm<-lapply(nm, as.matrix)
-  n <- max(sapply(nm, nrow)) 
-  do.call(cbind, lapply(nm, function (x) 
-    rbind(x, matrix(, n-nrow(x), ncol(x))))) 
-}
-
-Combine_Unequal <- function(a, b){
-  res <- data.frame(cbind.fill(a$MeanX, b$MeanX))
-  return(res)
-}
-
-# Function to rename cols
-Rename_Col <- function(x, a, b){
-  x <- setNames(x, c(a, b))
-  return(x)
-}
-
-# Apply funcs to each df in list
-# Make df of f/m MeanX 
-MeanX <- Map(Combine_Unequal, 
-             a=f.tmp_MeanX_XIST, 
-             b=m.tmp_MeanX_XIST)
-MeanX <- Map(Rename_Col, x=MeanX, 
-             a='f.MeanX', 
-             b='m.MeanX')
-
-# Function to perform two-sided Wilcoxon rank sum test
-# H0: MeanX is not different b/w f/m
-# alpha: 0.05
-Wilcox_Func <- function(x){
-  res <- wilcox.test(x$f.MeanX, x$m.MeanX)
-  return(res)
-}
-
-# Function to get p-value
-Extract_pVal <- function(x){
-  res <- x[[3]]
-  return(res)
-}
-
-# Apply functions to list of dfs
-Wilcox_MeanX <- lapply(MeanX, Wilcox_Func)
-pVal_MeanX <- lapply(Wilcox_MeanX, Extract_pVal)
-
-# Convert named list to df
-pVal.df <- stack(pVal_MeanX)
-
-# Switch df column order and rename cols
-pVal.df <- pVal.df[,c(2,1)]
-colnames(pVal.df) <- c('Tissue', 'Wilcox_pVal')
-
-# Write to table
-write.csv(pVal.df, file=WILCOX)
 
 # ______________________________________________________________________________________________________________________
 #  Session Data
