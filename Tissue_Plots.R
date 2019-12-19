@@ -30,13 +30,6 @@ load(DATA)
 # ______________________________________________________________________________________________________________________
 #  QQ Plots
 # ______________________________________________________________________________________________________________________
-# Plot female tissue LM residuals
-qqnorm(lm_f.MeanX_XIST[[1]]$residuals,
-       ylab = "Residuals",
-       xlab = "Normal Scores",
-       main = "XIST ~ MeanX in Female Samples")
-qqline(lm_f.MeanX_XIST[[1]]$residuals)
-
 # Functon to plot LM residuals
 QQ_Func <- function(LM, SEX, TISSUE){
   plot <- qqnorm(LM[['residuals']],
