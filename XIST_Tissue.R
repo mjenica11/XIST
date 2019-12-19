@@ -12,14 +12,14 @@ GENCODE <- "gencode.v19.genes.v7.patched_contigs.gff3"
 GENE_LST <- "~/XIST/Files/X_Genes_Status.json"
 
 # Results
-AVG <- "~/XIST/Tissue/XIST/Tissue_Linear_Model_Averages.csv"
-SLOPES <- "~/XIST/Tissue/XIST/Tissue_Slopes_Table.csv"
-WILCOX <- "~/XIST/Tissue/XIST/Wilcox_Results_MeanX.csv"
-LM_FEM <- "~/XIST/Tissue/XIST/Female_Tissue_Correlations.csv"
-LM_MALE <- "~/XIST/Tissue/XIST/Male_Tissue_Correlations.csv"
+AVG <- "~/XIST/Tissue/Tissue_Linear_Model_Averages.csv"
+SLOPES <- "~/XIST/Tissue/Tissue_Slopes_Table.csv"
+WILCOX <- "~/XIST/Tissue/Wilcox_Results_MeanX.csv"
+LM_FEM <- "~/XIST/Tissue/Female_Tissue_Correlations.csv"
+LM_MALE <- "~/XIST/Tissue/Male_Tissue_Correlations.csv"
 
 # Session data 
-DATA <- "Gene_Tissue_112019.RData"
+DATA <- "~/XIST/Gene_Tissue_121819.RData"
 
 # Load libraries
 library(readr) 
@@ -1031,8 +1031,8 @@ f.Regression <- f.Regression[order(f.Regression$Num_Tissues, decreasing=TRUE),]
 m.Regression <- m.Regression[order(m.Regression$Num_Tissues, decreasing=TRUE),]
 
 # Write to file
-# write.csv(f.Regression, LM_FEM, row.names=FALSE)
-# write.csv(m.Regression, LM_MALE, row.names=FALSE)
+write.csv(f.Regression, LM_FEM, row.names=FALSE)
+write.csv(m.Regression, LM_MALE, row.names=FALSE)
 
 # ______________________________________________________________________________________________________________________
 #  Correlations summary
@@ -1040,7 +1040,7 @@ m.Regression <- m.Regression[order(m.Regression$Num_Tissues, decreasing=TRUE),]
 # Average R^2 of silenced genes reported in both studies for females and males
 Summary.df <- data.frame(Female=colMeans(f.Regression[,2:ncol(f.Regression)]),
                          Male=colMeans(m.Regression[,2:ncol(m.Regression)]))
-#write.csv(Summary.df, AVG)
+write.csv(Summary.df, AVG)
 
 # ______________________________________________________________________________________________________________________
 #  Table of Slopes
@@ -1065,7 +1065,7 @@ l <- list(f.Slopes, m.Slopes)
 Slopes.df <- rbindlist(l, use.names=TRUE, fill=TRUE, idcol="Sex")
 Slopes.df$Sex <- c("Female", "Male")
 
-#write.csv(Slopes.df, SLOPES)
+write.csv(Slopes.df, SLOPES)
 
 # ______________________________________________________________________________________________________________________
 #  Wilcoxon Rank Sum Test
@@ -1155,5 +1155,5 @@ write.csv(pVal.df, file=WILCOX)
 # ______________________________________________________________________________________________________________________
 #  Session Data
 # ______________________________________________________________________________________________________________________
-#save.image(file=DATA)
+save.image(file=DATA)
 
