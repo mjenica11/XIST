@@ -32,13 +32,14 @@ load(DATA)
 # ______________________________________________________________________________________________________________________
 # Functon to plot LM residuals
 QQ_Func <- function(LM, SEX, TISSUE){
-  plot <- qqnorm(LM[['residuals']],
-                 ylab = "Residuals",
-                 xlab = "Normal Scores",
-                 main = paste(SEX, "lm(MeanX ~ XIST) in", TISSUE))
-          qqline(lm_f.MeanX_XIST[[1]]$residuals)
+  plot <- qqnorm(y = LM[['model']][['XIST']], # predictor/independent var
+                 ylab = "Sample XIST TPMs",
+                 xlab = "Theoretical Quantiles",
+                 main = paste("lm(MeanX ~ XIST) in", SEX, TISSUE))
+  qqline(LM[['model']][['XIST']])
   return(plot)
 }
+
 pdf(F.QQ)
 Map(QQ_Func, LM=lm_f.MeanX_XIST, SEX=c("Female"), TISSUE=names(lm_f.MeanX_XIST))
 dev.off()
@@ -96,36 +97,55 @@ m.Scatter <- Map(Scatter_Func,
 dev.off()
 
 # ______________________________________________________________________________________________________________________
-#  Scatter plot of Mean X vs XIST R2 values across female tissues
+#  Scatter plot of Mean X vs XIST R2 values across female/male tissues
 # ______________________________________________________________________________________________________________________
+# If I want to keep fe/male plots seperate
+# R2_Func <- function(DF, SEX){
+#   plot <- ggplot(DF, aes(x=Tissue, y=R2_MeanX)) + # refer directly to df columns
+#     geom_point() +
+#     ggtitle(paste('Scatter plot of Mean X vs XIST R2 in', SEX, 'Tissues')) +
+#     xlab('Tissue Type') +
+#     ylab('R^2 Mean X vs XIST') +
+#     ylim(c(0,1)) +
+#     theme(axis.text.x = element_text(angle = 90, hjust = 1))
+#   return(plot)
+# }
+# R2_Func(DF=m.Regression, SEX='Male')
+
+# Plot females and males together
+R2_Func <- function(DF1, DF2){
+  plot <- ggplot(DF1, aes(x=Tissue, y=R2_MeanX)) + # refer directly to df columns
+    geom_point(color='blue') +
+    geom_point(data=DF2, aes(x=Tissue, y=R2_MeanX), color='green') +
+    ggtitle('Scatter plot of Mean X vs XIST R2 in Female and Male Tissues') +
+    xlab('Tissue Type') +
+    ylab('R^2 Mean X vs XIST') +
+    ylim(c(0,1)) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  return(plot)
+}
 pdf(R2_SCATTER)
-ggplot(f.MeanX_XIST.df, aes(x=Tissue, y=R2_MeanX)) +
-  geom_point() +
-  ggtitle('Scatter plot of Mean X vs XIST R2 in Female Tissues') +
-  xlab('Tissue Type') +
-  ylab('R^2 Mean X vs XIST') +
-  ylim(c(0,1)) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+R2_Func(DF1=f.Regression, DF2=m.Regression)
 dev.off()
 
 # ______________________________________________________________________________________________________________________
 #  Scatter plot of R^2 of MeanX and XIST vs XIST
 # ______________________________________________________________________________________________________________________
-Shared <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",                 
-            "Brain - Anterior cingulate cortex (BA24)", "Brain - Frontal Cortex (BA9)",             
-            "Brain - Cerebellar Hemisphere", "Brain - Caudate (basal ganglia)",          
-            "Brain - Nucleus accumbens (basal ganglia)", "Brain - Putamen (basal ganglia)",          
-            "Brain - Hypothalamus", "Brain - Spinal cord (cervical c-1)",       
-            "Brain - Amygdala", "Brain - Cerebellum", "Adipose - Subcutaneous", 
-            "Muscle - Skeletal", "Artery - Tibial", "Artery - Coronary",                        
-            "Heart - Atrial Appendage", "Adipose - Visceral (Omentum)",                                   
-            "Breast - Mammary Tissue", "Skin - Not Sun Exposed (Suprapubic)", 
-            "Minor Salivary Gland", "Adrenal Gland", "Thyroid", "Lung","Spleen", "Pancreas",                                  
+Shared <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",
+            "Brain - Anterior cingulate cortex (BA24)", "Brain - Frontal Cortex (BA9)",
+            "Brain - Cerebellar Hemisphere", "Brain - Caudate (basal ganglia)",
+            "Brain - Nucleus accumbens (basal ganglia)", "Brain - Putamen (basal ganglia)",
+            "Brain - Hypothalamus", "Brain - Spinal cord (cervical c-1)",
+            "Brain - Amygdala", "Brain - Cerebellum", "Adipose - Subcutaneous",
+            "Muscle - Skeletal", "Artery - Tibial", "Artery - Coronary",
+            "Heart - Atrial Appendage", "Adipose - Visceral (Omentum)",
+            "Breast - Mammary Tissue", "Skin - Not Sun Exposed (Suprapubic)",
+            "Minor Salivary Gland", "Adrenal Gland", "Thyroid", "Lung","Spleen", "Pancreas",
             "Esophagus - Muscularis", "Esophagus - Mucosa","Esophagus - Gastroesophageal Junction",
-            "Stomach", "Colon - Sigmoid", "Small Intestine - Terminal Ileum",         
-            "Colon - Transverse", "Skin - Sun Exposed (Lower leg)",           
-            "Nerve - Tibial", "Heart - Left Ventricle", "Pituitary",                                                        
-            "Cells - Transformed fibroblasts", "Whole Blood",                              
+            "Stomach", "Colon - Sigmoid", "Small Intestine - Terminal Ileum",
+            "Colon - Transverse", "Skin - Sun Exposed (Lower leg)",
+            "Nerve - Tibial", "Heart - Left Ventricle", "Pituitary",
+            "Cells - Transformed fibroblasts", "Whole Blood",
             "Artery - Aorta", "Liver", "Kidney - Cortex", "Bladder")
 
 # df of R2_MeanX and Mean_XIST for both females and males
