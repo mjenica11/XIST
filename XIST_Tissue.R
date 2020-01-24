@@ -1,7 +1,10 @@
+#!/usr/bin/env Rscript
+
 # Perform linear regression on the gene count data (version 7).
 # Fit linear models: 
 # Reponse variable: Mean X chromosome expression and various sets of X-linked genes 
 # Predictor variable: XIST
+# Inlude expressed genes on the X chromosome only 
 setwd("~/XIST/")
 
 # Constants
@@ -12,11 +15,11 @@ GENCODE <- "gencode.v19.genes.v7.patched_contigs.gff3"
 GENE_LST <- "~/XIST/Files/X_Genes_Status.json"
 
 # Results
-LM_FEM <- "~/XIST/Tissue/LM/Female_Tissue_Correlations.csv"
-LM_MALE <- "~/XIST/Tissue/LM/Male_Tissue_Correlations.csv"
+LM_FEM <- "~/XIST/Tissue/Xpressed/Mean/Female_Tissue_Correlations.csv"
+LM_MALE <- "~/XIST/Tissue/Xpressed/Mean/Male_Tissue_Correlations.csv"
 
 # Session data 
-DATA <- "~/XIST/Tissue/XIST_Tissue_121919.RData"
+DATA <- "~/XIST/Tissue/Xpressed/Mean/Xpressed_012420.RData"
 
 # Load libraries
 library(readr) 
@@ -91,6 +94,10 @@ for (i in seq_along(Tissue_Lst)){
 # Check for missing values
 sapply(Tissue_Lst, function(x) sum(is.na(x))) # Cells - Leukemia cell line (CML) 
 
+# Drop cell lines
+Cells <- c("Cells - Leukemia cell line (CML)", "Cells - EBV-transformed lymphocytes", "Cells - Transformed fibroblasts")
+Tissue_Lst <- Tissue_Lst[!names(Tissue_Lst) %in% Cells]
+
 # Get list of female IDs
 Fem.IDs <- Phenotypes$SUBJID[which(Phenotypes$SEX==2)]
 
@@ -129,7 +136,7 @@ Tissue_Lst <- lapply(Tissue_Lst, function(x){
 })
 
 # ______________________________________________________________________________________________________________________
-# Get X chromosome counts for each sample organized by tissue type
+# Organize sample counts by sex and tissue type; drop replicates
 # ______________________________________________________________________________________________________________________
 # For each individual, make a data frame of gene counts from samples that come 
 # from the same person and store in list.
@@ -166,9 +173,6 @@ Sort_Func <- function(x){
 f.Tissue_Counts <- lapply(f.Tissue_Lst, Sort_Func)
 m.Tissue_Counts <- lapply(m.Tissue_Lst, Sort_Func)
 
-# ______________________________________________________________________________________________________________________
-# Check for empty data frames, remove sample replicates, and drop XIST.
-# ______________________________________________________________________________________________________________________
 # Remove sample replicates
 Drop_Replicates <- function(x){
   x <- x[, !(names(x) %in% Sample_Replicates)]
@@ -177,8 +181,10 @@ Drop_Replicates <- function(x){
 f.Tissue_Counts <- lapply(f.Tissue_Counts, Drop_Replicates)
 m.Tissue_Counts <- lapply(m.Tissue_Counts, Drop_Replicates)
 
+# ______________________________________________________________________________________________________________________
 # Get subset of just X chm genes from each data frame in list
-# Will not include XIST
+# ______________________________________________________________________________________________________________________
+# Subset X chr genes; Will not include XIST
 XSubset_Func <- function(x){
   res <- filter(x, gene_id %in% X_Genes$gene_id)
   return(res)
@@ -186,11 +192,21 @@ XSubset_Func <- function(x){
 f.Tissue_XCounts <- lapply(f.Tissue_Counts, XSubset_Func)
 m.Tissue_XCounts <- lapply(m.Tissue_Counts, XSubset_Func)
 
-# Check for missing values
-sapply(f.Tissue_XCounts, function(x) sum(is.na(x)))
-sapply(m.Tissue_XCounts, function(x) sum(is.na(x)))
+# Remove X chr genes that are unexpressed
+# Function to filter list of count dfs by tpm value
+Filter_Cts <- function(DF, TPM){
+  DF <- DF[apply(DF[,3:ncol(DF)], MARGIN=1, function(x) all(x>TPM)),]
+  return(DF)
+}
+# Keep genes with TPM > 0; counts are seperated by sex
+f.Tissue_XCounts <- Map(Filter_Cts, DF=f.Tissue_XCounts, TPM=0)
+m.Tissue_XCounts <- Map(Filter_Cts, DF=m.Tissue_XCounts, TPM=0)
 
-# Get the mean values of the X chm genes
+# Check for missing values
+any(sapply(f.Tissue_XCounts, function(x) sum(is.na(x)))) # FALSE
+any(sapply(m.Tissue_XCounts, function(x) sum(is.na(x)))) # FALSE
+
+# Get the mean values of expressed X chm genes
 Mean_Val <- function(x){
   res <- colMeans(x[sapply(x, is.numeric)]) 
   return(res)
