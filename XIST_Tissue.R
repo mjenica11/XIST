@@ -19,7 +19,7 @@ LM_FEM <- "~/XIST/Tissue/Xpressed/Mean/Female_Tissue_Correlations.csv"
 LM_MALE <- "~/XIST/Tissue/Xpressed/Mean/Male_Tissue_Correlations.csv"
 
 # Session data 
-DATA <- "~/XIST/Tissue/Xpressed/Mean/Xpressed_012420.RData"
+DATA <- "~/XIST/Tissue/Xpressed/Mean/Xpressed_012720.RData"
 
 # Load libraries
 library(readr) 
@@ -1040,9 +1040,10 @@ f.Regression <- cbind(Tissue=names(f.Tissue_Lst), f.Regression)
 m.Regression <- cbind(Tissue=names(m.Tissue_Lst), m.Regression) 
 
 # Sort by number of tissues
-f.Regression <- f.Regression[order(f.Regression$Num_Tissues, decreasing=TRUE),]
-m.Regression <- m.Regression[order(m.Regression$Num_Tissues, decreasing=TRUE),]
-
+# This is just for reporting results; use the unsorted df for plotting
+# f.Regression <- f.Regression[order(f.Regression$Num_Tissues, decreasing=TRUE),]
+# m.Regression <- m.Regression[order(m.Regression$Num_Tissues, decreasing=TRUE),]
+ 
 # Write to file
 write.csv(f.Regression, LM_FEM, row.names=FALSE)
 write.csv(m.Regression, LM_MALE, row.names=FALSE)
