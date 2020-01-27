@@ -167,12 +167,12 @@ Shared <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",
             "Artery - Aorta", "Liver", "Kidney - Cortex", "Bladder")
 
 # df of R2_MeanX and Mean_XIST for both females and males
-Subset_f.df <- f.MeanX_XIST.df[ ,c('Tissue', 'R2_MeanX', 'Mean_XIST')]
+Subset_f.df <- f.Regression[ ,c('Tissue', 'R2_MeanX', 'Mean_XIST')]
 Common_f.df <- Subset_f.df[Subset_f.df$Tissue %in% Shared, ]
 Common_f.df$Sex <- 'Female'
 
 # Add values from males
-Subset_m.df <- m.MeanX_XIST.df[ ,c('Tissue', 'R2_MeanX', 'Mean_XIST')]
+Subset_m.df <- m.Regression[ ,c('Tissue', 'R2_MeanX', 'Mean_XIST')]
 Common_m.df <- Subset_m.df[Subset_m.df$Tissue %in% Shared, ]
 Common_m.df$Sex <- 'Male'
 
