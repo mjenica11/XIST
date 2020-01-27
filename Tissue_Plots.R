@@ -1,23 +1,25 @@
+#!/usr/bin/env Rscript
+
 # Plots related to tissue linear model results
 setwd("~/XIST/")
 
 # Constants
-DATA <- "~/XIST/Gene_Tissue_121819.RData"
-F.QQ <- "~/XIST/Tissue/Fem_QQ_Plots.pdf"
-M.QQ <- "~/XIST/Tissue/Male_QQ_Plots.pdf"
-F.SCATTER <- "~/XIST/Tissue/Fem_Tissue_Scatter_Plots.pdf"
-M.SCATTER <- "~/XIST/Tissue/Male_Tissue_Scatter_Plots.pdf"
-R2_SCATTER <- "~/XIST/Tissue/R2_Scatter.pdf"
-F.BRAIN_XIST <- "~/XIST/Tissue/Fem_Brain_XIST.pdf"
-M.BRAIN_XIST <- "~/XIST/Tissue/Male_Brain_XIST.pdf"
-F.NOT_BRAIN_XIST <- "~/XIST/Tissue/Fem_NotBrain_XIST.pdf"
-M.NOT_BRAIN_XIST <- "~/XIST/Tissue/Male_NotBrain_XIST.pdf"
-SEX_SPECIFIC <- "~/XIST/Tissue/Sex_Specific_Violin.pdf"
-NOT_BRAIN_VIOLIN <- "~/XIST/Tissue/NotBrain_Violin.pdf"
-BRAIN_VIOLIN <- "~/XIST/Tissue/Brain_Violin.pdf"
-XIST.R2_SCATTER <- "~/XIST/Tissue/R2_XIST_and_MeanX_Vs_MeanXIST.pdf"
-VENN <- "~/XIST/Tissue/Venn_GeneCategories.pdf"
-R2_VIOLIN <- "~/XIST/Tissue/R2_Violin.pdf"
+DATA <- "~/XIST/Tissue/Xpressed/Mean/Xpressed_012720.RData"
+F.QQ <- "~/XIST/Tissue/Xpressed/Mean/Fem_QQ_Plots.pdf"
+M.QQ <- "~/XIST/Tissue/Xpressed/Mean/Male_QQ_Plots.pdf"
+F.SCATTER <- "~/XIST/Tissue/Xpressed/Mean/Fem_Tissue_Scatter_Plots.pdf"
+M.SCATTER <- "~/XIST/Tissue/Xpressed/Mean/Male_Tissue_Scatter_Plots.pdf"
+R2_SCATTER <- "~/XIST/Tissue/Xpressed/Mean/R2_Scatter.pdf"
+F.BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Mean/Fem_Brain_XIST.pdf"
+M.BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Mean/Male_Brain_XIST.pdf"
+F.NOT_BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Mean/Fem_NotBrain_XIST.pdf"
+M.NOT_BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Mean/Male_NotBrain_XIST.pdf"
+SEX_SPECIFIC <- "~/XIST/Tissue/Xpressed/Mean/Sex_Specific_Violin.pdf"
+NOT_BRAIN_VIOLIN <- "~/XIST/Tissue/Xpressed/Mean/NotBrain_Violin.pdf"
+BRAIN_VIOLIN <- "~/XIST/Tissue/Xpressed/Mean/Brain_Violin.pdf"
+XIST.R2_SCATTER <- "~/XIST/Tissue/Xpressed/Mean/R2_XIST_and_MeanX_Vs_MeanXIST.pdf"
+VENN <- "~/XIST/Tissue/Xpressed/Mean/Venn_GeneCategories.pdf"
+R2_VIOLIN <- "~/XIST/Tissue/Xpressed/Mean/R2_Violin.pdf"
 
 # Load libraries
 library(readr) 
@@ -73,15 +75,20 @@ f.ymax <- round(max(unlist(Map(Max_Func, x=f.MeanX_Vs_XIST, y='MeanX'))))
 m.ymax <- max(unlist(Map(Max_Func, x=m.MeanX_Vs_XIST, y='MeanX')))
 
 # Scatter plots: Correlation by tissue
-Scatter_Func <- function(LM, TITLE, XMAX, YMAX, RESULTS){
-  plot(LM$model$XIST, LM$model$MeanX, main=TITLE, xlab='XIST', ylab='Mean X chromosome',
-       xlim=c(0, XMAX), ylim=c(0, YMAX))
+Scatter_Func <- function(LM, TITLE, XMAX, YMAX, R2, PVAL){
+  plot(LM[['model']][['XIST']], 
+       LM[['model']][['MeanX']], 
+       main=TITLE, 
+       xlab='XIST', 
+       ylab='Mean X chromosome',
+       xlim=c(0, XMAX), 
+       ylim=c(0, YMAX))
   legend("bottomright", 
          bty="n", 
          legend=paste("R^2: ", 
-                      format(RESULTS$r_2, digits=3), 
+                      format(R2, digits=3), 
                       "; p_Val: ", 
-                      format(RESULTS$p_val, digits=3)))
+                      format(PVAL, digits=3)))
   abline(LM)
 }
 
@@ -92,7 +99,8 @@ f.Scatter <- Map(Scatter_Func,
                  TITLE=names(lm_f.MeanX_XIST), 
                  XMAX=f.xmax, 
                  YMAX=f.ymax, 
-                 RESULTS=f.Regression)
+                 R2=f.Regression[['R2_MeanX']],
+                 PVAL=f.Regression[['pval_MeanX']])
 dev.off()
 
 # set x lim to male max(XIST) but keep y lim as female max(MeanX)
@@ -102,7 +110,8 @@ m.Scatter <- Map(Scatter_Func,
                  TITLE=names(lm_m.MeanX_XIST), 
                  XMAX=m.xmax, 
                  YMAX=f.ymax, 
-                 RESULTS=m.Regression)
+                 R2=m.Regression[['R2_MeanX']],
+                 PVAL=m.Regression[['pval_MeanX']])
 dev.off()
 
 # ______________________________________________________________________________________________________________________
