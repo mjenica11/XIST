@@ -2,22 +2,22 @@
 setwd("~/XIST/")
 
 # Constants
-DATA <- "~/XIST/Gene_Tissue_121819.RData"
-F.QQ <- "~/XIST/Tissue/Fem_QQ_Plots.pdf"
-M.QQ <- "~/XIST/Tissue/Male_QQ_Plots.pdf"
-F.SCATTER <- "~/XIST/Tissue/Fem_Tissue_Scatter_Plots.pdf"
-M.SCATTER <- "~/XIST/Tissue/Male_Tissue_Scatter_Plots.pdf"
-R2_SCATTER <- "~/XIST/Tissue/R2_Scatter.pdf"
-F.BRAIN_XIST <- "~/XIST/Tissue/Fem_Brain_XIST.pdf"
-M.BRAIN_XIST <- "~/XIST/Tissue/Male_Brain_XIST.pdf"
-F.NOT_BRAIN_XIST <- "~/XIST/Tissue/Fem_NotBrain_XIST.pdf"
-M.NOT_BRAIN_XIST <- "~/XIST/Tissue/Male_NotBrain_XIST.pdf"
-SEX_SPECIFIC <- "~/XIST/Tissue/Sex_Specific_Violin.pdf"
-NOT_BRAIN_VIOLIN <- "~/XIST/Tissue/NotBrain_Violin.pdf"
-BRAIN_VIOLIN <- "~/XIST/Tissue/Brain_Violin.pdf"
-XIST.R2_SCATTER <- "~/XIST/Tissue/R2_XIST_and_MeanX_Vs_MeanXIST.pdf"
-VENN <- "~/XIST/Tissue/Venn_GeneCategories.pdf"
-R2_VIOLIN <- "~/XIST/Tissue/R2_Violin.pdf"
+DATA <- "~/XIST/Tissue/XTotal/XTotal_012820.RData"
+F.QQ <- "~/XIST/Tissue/XTotal/Fem_QQ_Plots.pdf"
+M.QQ <- "~/XIST/Tissue/XTotal/Male_QQ_Plots.pdf"
+F.SCATTER <- "~/XIST/Tissue/XTotal/Fem_Tissue_Scatter_Plots.pdf"
+M.SCATTER <- "~/XIST/Tissue/XTotal/Male_Tissue_Scatter_Plots.pdf"
+R2_SCATTER <- "~/XIST/Tissue/XTotal/R2_Scatter.pdf"
+F.BRAIN_XIST <- "~/XIST/Tissue/XTotal/Fem_Brain_XIST.pdf"
+M.BRAIN_XIST <- "~/XIST/Tissue/XTotal/Male_Brain_XIST.pdf"
+F.NOT_BRAIN_XIST <- "~/XIST/Tissue/XTotal/Fem_NotBrain_XIST.pdf"
+M.NOT_BRAIN_XIST <- "~/XIST/Tissue/XTotal/Male_NotBrain_XIST.pdf"
+SEX_SPECIFIC <- "~/XIST/Tissue/XTotal/Sex_Specific_Violin.pdf"
+NOT_BRAIN_VIOLIN <- "~/XIST/Tissue/XTotal/NotBrain_Violin.pdf"
+BRAIN_VIOLIN <- "~/XIST/Tissue/XTotal/Brain_Violin.pdf"
+XIST.R2_SCATTER <- "~/XIST/Tissue/XTotal/R2_XIST_and_MeanX_Vs_MeanXIST.pdf"
+VENN <- "~/XIST/Tissue/XTotal/Venn_GeneCategories.pdf"
+R2_VIOLIN <- "~/XIST/Tissue/XTotal/R2_Violin.pdf"
 
 # Load libraries
 library(readr) 
@@ -73,15 +73,20 @@ f.ymax <- round(max(unlist(Map(Max_Func, x=f.MeanX_Vs_XIST, y='MeanX'))))
 m.ymax <- max(unlist(Map(Max_Func, x=m.MeanX_Vs_XIST, y='MeanX')))
 
 # Scatter plots: Correlation by tissue
-Scatter_Func <- function(LM, TITLE, XMAX, YMAX, RESULTS){
-  plot(LM$model$XIST, LM$model$MeanX, main=TITLE, xlab='XIST', ylab='Mean X chromosome',
-       xlim=c(0, XMAX), ylim=c(0, YMAX))
+Scatter_Func <- function(LM, TITLE, XMAX, YMAX, R2, PVAL){
+  plot(LM[['model']][['XIST']], 
+       LM[['model']][['MeanX']], 
+       main=TITLE, 
+       xlab='XIST', 
+       ylab='Mean X chromosome',
+       xlim=c(0, XMAX), 
+       ylim=c(0, YMAX))
   legend("bottomright", 
          bty="n", 
          legend=paste("R^2: ", 
-                      format(RESULTS$r_2, digits=3), 
+                      format(R2, digits=3), 
                       "; p_Val: ", 
-                      format(RESULTS$p_val, digits=3)))
+                      format(PVAL, digits=3)))
   abline(LM)
 }
 
@@ -92,7 +97,8 @@ f.Scatter <- Map(Scatter_Func,
                  TITLE=names(lm_f.MeanX_XIST), 
                  XMAX=f.xmax, 
                  YMAX=f.ymax, 
-                 RESULTS=f.Regression)
+                 R2=f.Regression[['R2_MeanX']],
+                 PVAL=f.Regression[['pval_MeanX']])
 dev.off()
 
 # set x lim to male max(XIST) but keep y lim as female max(MeanX)
@@ -102,7 +108,8 @@ m.Scatter <- Map(Scatter_Func,
                  TITLE=names(lm_m.MeanX_XIST), 
                  XMAX=m.xmax, 
                  YMAX=f.ymax, 
-                 RESULTS=m.Regression)
+                 R2=m.Regression[['R2_MeanX']],
+                 PVAL=m.Regression[['pval_MeanX']])
 dev.off()
 
 # ______________________________________________________________________________________________________________________
@@ -158,12 +165,12 @@ Shared <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",
             "Artery - Aorta", "Liver", "Kidney - Cortex", "Bladder")
 
 # df of R2_MeanX and Mean_XIST for both females and males
-Subset_f.df <- f.MeanX_XIST.df[ ,c('Tissue', 'R2_MeanX', 'Mean_XIST')]
+Subset_f.df <- f.Regression[ ,c('Tissue', 'R2_MeanX', 'Mean_XIST')]
 Common_f.df <- Subset_f.df[Subset_f.df$Tissue %in% Shared, ]
 Common_f.df$Sex <- 'Female'
 
 # Add values from males
-Subset_m.df <- m.MeanX_XIST.df[ ,c('Tissue', 'R2_MeanX', 'Mean_XIST')]
+Subset_m.df <- m.Regression[ ,c('Tissue', 'R2_MeanX', 'Mean_XIST')]
 Common_m.df <- Subset_m.df[Subset_m.df$Tissue %in% Shared, ]
 Common_m.df$Sex <- 'Male'
 
@@ -245,18 +252,18 @@ Violin_Func <- function(DF, RANGE, TITLE){
     )
   return(plot)
 }
-pdf(F.BRAIN_XIST)
+#pdf(F.BRAIN_XIST)
 Violin_Func(DF=Brain_f.df, RANGE=c(0, 5), TITLE='Violin Plots of log10 XIST Expression in Female Brain Tissues')
-dev.off()
-pdf(M.BRAIN_XIST)
+#dev.off()
+#pdf(M.BRAIN_XIST)
 Violin_Func(DF=Brain_m.df, RANGE=c(0,5), TITLE='Violin Plots of log10 XIST Expression in Male Brain Tissues')
-dev.off()
-pdf(F.NOT_BRAIN_XIST)
+#dev.off()
+#pdf(F.NOT_BRAIN_XIST)
 Violin_Func(DF=Not_Brain_m.df, RANGE=c(0,5), TITLE='Violin Plots of log10 XIST Expression in Male Tissues')
-dev.off()
-pdf(M.NOT_BRAIN_XIST)
+#dev.off()
+#pdf(M.NOT_BRAIN_XIST)
 Violin_Func(DF=Not_Brain_f.df, RANGE=c(0, 5), TITLE='Violin Plots of log10 XIST Expression in Female Tissues')
-dev.off()
+#dev.off()
 
 # ______________________________________________________________________________________________________________________
 #  Grouped Violin Plot
@@ -310,9 +317,9 @@ p <- Sex_Specific %>%
     xaxis = list(title = "Tissue Types"),
     yaxis = list(title = "Mean X Chm Read Count", zeroline = F, range=c(0,5))
   ) 
-pdf(SEX_SPECIFIC)
+#pdf(SEX_SPECIFIC)
 p
-dev.off()
+#dev.off()
 
 # ______________________________________________________________________________________________________________________
 #  Split Violin Plots 
@@ -393,16 +400,16 @@ Split_Violin <- function(DF, TITLE, RANGE){
     ) 
   return(plot)
 }
-pdf(NOT_BRAIN_VIOLIN)
+#pdf(NOT_BRAIN_VIOLIN)
 Split_Violin(DF=Not_Brain_Shared.df, 
              TITLE="log10 Mean X Chromosome Expression in Tissues Common to Both Sexes",
              RANGE=c(0,5))
-dev.off()
-pdf(BRAIN_VIOLIN)
+#dev.off()
+#pdf(BRAIN_VIOLIN)
 Split_Violin(DF=Brain_Shared.df, 
              TITLE="log10 Mean X Chromosome Expression in Female and Male Brain Tissues",
              RANGE=c(0,5))
-dev.off()
+#dev.off()
 
 # ______________________________________________________________________________________________________________________
 #  Venn diagram; overlap between gene classification schemes
