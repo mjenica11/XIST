@@ -1,23 +1,25 @@
+#!/usr/bin/env Rscript
+
 # Plots related to tissue linear model results
 setwd("~/XIST/")
 
 # Constants
-DATA <- "~/XIST/Gene_Tissue_121819.RData"
-F.QQ <- "~/XIST/Tissue/Fem_QQ_Plots.pdf"
-M.QQ <- "~/XIST/Tissue/Male_QQ_Plots.pdf"
-F.SCATTER <- "~/XIST/Tissue/Fem_Tissue_Scatter_Plots.pdf"
-M.SCATTER <- "~/XIST/Tissue/Male_Tissue_Scatter_Plots.pdf"
-R2_SCATTER <- "~/XIST/Tissue/R2_Scatter.pdf"
-F.BRAIN_XIST <- "~/XIST/Tissue/Fem_Brain_XIST.pdf"
-M.BRAIN_XIST <- "~/XIST/Tissue/Male_Brain_XIST.pdf"
-F.NOT_BRAIN_XIST <- "~/XIST/Tissue/Fem_NotBrain_XIST.pdf"
-M.NOT_BRAIN_XIST <- "~/XIST/Tissue/Male_NotBrain_XIST.pdf"
-SEX_SPECIFIC <- "~/XIST/Tissue/Sex_Specific_Violin.pdf"
-NOT_BRAIN_VIOLIN <- "~/XIST/Tissue/NotBrain_Violin.pdf"
-BRAIN_VIOLIN <- "~/XIST/Tissue/Brain_Violin.pdf"
-XIST.R2_SCATTER <- "~/XIST/Tissue/R2_XIST_and_MeanX_Vs_MeanXIST.pdf"
-VENN <- "~/XIST/Tissue/Venn_GeneCategories.pdf"
-R2_VIOLIN <- "~/XIST/Tissue/R2_Violin.pdf"
+DATA <- "~/XIST/Tissue/Xpressed/Median/Xpressed_012720.RData"
+F.QQ <- "~/XIST/Tissue/Xpressed/Median/Fem_QQ_Plots.pdf"
+M.QQ <- "~/XIST/Tissue/Xpressed/Median/Male_QQ_Plots.pdf"
+F.SCATTER <- "~/XIST/Tissue/Xpressed/Median/Fem_Tissue_Scatter_Plots.pdf"
+M.SCATTER <- "~/XIST/Tissue/Xpressed/Median/Male_Tissue_Scatter_Plots.pdf"
+R2_SCATTER <- "~/XIST/Tissue/Xpressed/Median/R2_Scatter.pdf"
+F.BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Median/Fem_Brain_XIST.pdf"
+M.BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Median/Male_Brain_XIST.pdf"
+F.NOT_BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Median/Fem_NotBrain_XIST.pdf"
+M.NOT_BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Median/Male_NotBrain_XIST.pdf"
+SEX_SPECIFIC <- "~/XIST/Tissue/Xpressed/Median/Sex_Specific_Violin.pdf"
+NOT_BRAIN_VIOLIN <- "~/XIST/Tissue/Xpressed/Median/NotBrain_Violin.pdf"
+BRAIN_VIOLIN <- "~/XIST/Tissue/Xpressed/Median/Brain_Violin.pdf"
+XIST.R2_SCATTER <- "~/XIST/Tissue/Xpressed/Median/R2_XIST_and_MedX_Vs_MedXIST.pdf"
+VENN <- "~/XIST/Tissue/Xpressed/Median/Venn_GeneCategories.pdf"
+R2_VIOLIN <- "~/XIST/Tissue/Xpressed/Median/R2_Violin.pdf"
 
 # Load libraries
 library(readr) 
@@ -44,16 +46,16 @@ QQ_Func <- function(LM, SEX, TISSUE){
   plot <- qqnorm(y = LM[['model']][['XIST']], # predictor/independent var
                  ylab = "Sample XIST TPMs",
                  xlab = "Theoretical Quantiles",
-                 main = paste("lm(MeanX ~ XIST) in", SEX, TISSUE))
+                 main = paste("lm(MedX ~ XIST) in", SEX, TISSUE))
   qqline(LM[['model']][['XIST']])
   return(plot)
 }
 
 pdf(F.QQ)
-Map(QQ_Func, LM=lm_f.MeanX_XIST, SEX=c("Female"), TISSUE=names(lm_f.MeanX_XIST))
+Map(QQ_Func, LM=lm_f.MedX_XIST, SEX=c("Female"), TISSUE=names(lm_f.MedX_XIST))
 dev.off()
 pdf(M.QQ)
-Map(QQ_Func, LM=lm_m.MeanX_XIST, SEX=c("Male"), TISSUE=names(lm_m.MeanX_XIST))
+Map(QQ_Func, LM=lm_m.MedX_XIST, SEX=c("Male"), TISSUE=names(lm_f.MedX_XIST))
 dev.off()
 
 # ______________________________________________________________________________________________________________________
@@ -66,55 +68,62 @@ Max_Func <- function(x, y){
 }
 
 # x limits
-f.xmax <- round(max(unlist(Map(Max_Func, x=f.MeanX_Vs_XIST, y='XIST'))))
-m.xmax <- max(unlist(Map(Max_Func, x=m.MeanX_Vs_XIST, y='XIST')))
+f.xmax <- round(max(unlist(Map(Max_Func, x=f.MedX_Vs_XIST, y='XIST'))))
+m.xmax <- max(unlist(Map(Max_Func, x=m.MedX_Vs_XIST, y='XIST')))
 # y limits
-f.ymax <- round(max(unlist(Map(Max_Func, x=f.MeanX_Vs_XIST, y='MeanX'))))
-m.ymax <- max(unlist(Map(Max_Func, x=m.MeanX_Vs_XIST, y='MeanX')))
+f.ymax <- round(max(unlist(Map(Max_Func, x=f.MedX_Vs_XIST, y='MedX'))))
+m.ymax <- max(unlist(Map(Max_Func, x=m.MedX_Vs_XIST, y='MedX')))
 
 # Scatter plots: Correlation by tissue
-Scatter_Func <- function(LM, TITLE, XMAX, YMAX, RESULTS){
-  plot(LM$model$XIST, LM$model$MeanX, main=TITLE, xlab='XIST', ylab='Mean X chromosome',
-       xlim=c(0, XMAX), ylim=c(0, YMAX))
+Scatter_Func <- function(LM, TITLE, XMAX, YMAX, R2, PVAL){
+  plot(LM[['model']][['XIST']],
+       LM[['model']][['MedX']], 
+       main=TITLE, 
+       xlab='XIST', 
+       ylab='Median X chromosome',
+       xlim=c(0, XMAX), 
+       ylim=c(0, YMAX))
   legend("bottomright", 
          bty="n", 
          legend=paste("R^2: ", 
-                      format(RESULTS$r_2, digits=3), 
+                      format(R2, digits=3), 
                       "; p_Val: ", 
-                      format(RESULTS$p_val, digits=3)))
+                      format(PVAL, digits=3)))
   abline(LM)
 }
 
 # Print plots
 pdf(F.SCATTER)
 f.Scatter <- Map(Scatter_Func, 
-                 LM=lm_f.MeanX_XIST, 
-                 TITLE=names(lm_f.MeanX_XIST), 
+                 LM=lm_f.MedX_XIST, 
+                 TITLE=names(lm_f.MedX_XIST), 
                  XMAX=f.xmax, 
                  YMAX=f.ymax, 
-                 RESULTS=f.Regression)
+                 R2=f.Regression[['R2_MedX']],
+                 PVAL=f.Regression[['pval_MedX']])
 dev.off()
 
-# set x lim to male max(XIST) but keep y lim as female max(MeanX)
+# set x lim to male max(XIST) but keep y lim as female max(MedX)
 pdf(M.SCATTER)
 m.Scatter <- Map(Scatter_Func, 
-                 LM=lm_m.MeanX_XIST, 
-                 TITLE=names(lm_m.MeanX_XIST), 
+                 LM=lm_m.MedX_XIST, 
+                 TITLE=names(lm_m.MedX_XIST), 
                  XMAX=m.xmax, 
                  YMAX=f.ymax, 
-                 RESULTS=m.Regression)
+                 R2=m.Regression[['R2_MedX']],
+                 PVAL=m.Regression[['pval_MedX']])
 dev.off()
 
 # ______________________________________________________________________________________________________________________
-#  Scatter plot of Mean X vs XIST R2 values across female/male tissues
+#  Scatter plot of Median X vs XIST R2 values across female/male tissues
 # ______________________________________________________________________________________________________________________
 # If I want to keep fe/male plots seperate
 # R2_Func <- function(DF, SEX){
-#   plot <- ggplot(DF, aes(x=Tissue, y=R2_MeanX)) + # refer directly to df columns
+#   plot <- ggplot(DF, aes(x=Tissue, y=R2_MedX)) + # refer directly to df columns
 #     geom_point() +
-#     ggtitle(paste('Scatter plot of Mean X vs XIST R2 in', SEX, 'Tissues')) +
+#     ggtitle(paste('Scatter plot of Median X vs XIST R2 in', SEX, 'Tissues')) +
 #     xlab('Tissue Type') +
-#     ylab('R^2 Mean X vs XIST') +
+#     ylab('R^2 Median X vs XIST') +
 #     ylim(c(0,1)) +
 #     theme(axis.text.x = element_text(angle = 90, hjust = 1))
 #   return(plot)
@@ -123,12 +132,12 @@ dev.off()
 
 # Plot females and males together
 R2_Func <- function(DF1, DF2){
-  plot <- ggplot(DF1, aes(x=Tissue, y=R2_MeanX)) + # refer directly to df columns
+  plot <- ggplot(DF1, aes(x=Tissue, y=R2_MedX)) + # refer directly to df columns
     geom_point(color='blue') +
-    geom_point(data=DF2, aes(x=Tissue, y=R2_MeanX), color='green') +
-    ggtitle('Scatter plot of Mean X vs XIST R2 in Female and Male Tissues') +
+    geom_point(data=DF2, aes(x=Tissue, y=R2_MedX), color='green') +
+    ggtitle('Scatter plot of Median X vs XIST R2 in Female and Male Tissues') +
     xlab('Tissue Type') +
-    ylab('R^2 Mean X vs XIST') +
+    ylab('R^2 Median X vs XIST') +
     ylim(c(0,1)) +
     theme(axis.text.x = element_text(angle = 90, hjust = 1))
   return(plot)
@@ -138,7 +147,7 @@ R2_Func(DF1=f.Regression, DF2=m.Regression)
 dev.off()
 
 # ______________________________________________________________________________________________________________________
-#  Scatter plot of R^2 of MeanX and XIST vs XIST
+#  Scatter plot of R^2 of MedX and XIST vs XIST
 # ______________________________________________________________________________________________________________________
 Shared <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",
             "Brain - Anterior cingulate cortex (BA24)", "Brain - Frontal Cortex (BA9)",
@@ -157,13 +166,13 @@ Shared <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",
             "Cells - Transformed fibroblasts", "Whole Blood",
             "Artery - Aorta", "Liver", "Kidney - Cortex", "Bladder")
 
-# df of R2_MeanX and Mean_XIST for both females and males
-Subset_f.df <- f.MeanX_XIST.df[ ,c('Tissue', 'R2_MeanX', 'Mean_XIST')]
+# df of R2_MedX and Median_XIST for both females and males
+Subset_f.df <- f.Regression[ ,c('Tissue', 'R2_MedX', 'Median_XIST')]
 Common_f.df <- Subset_f.df[Subset_f.df$Tissue %in% Shared, ]
 Common_f.df$Sex <- 'Female'
 
 # Add values from males
-Subset_m.df <- m.MeanX_XIST.df[ ,c('Tissue', 'R2_MeanX', 'Mean_XIST')]
+Subset_m.df <- m.Regression[ ,c('Tissue', 'R2_MedX', 'Median_XIST')]
 Common_m.df <- Subset_m.df[Subset_m.df$Tissue %in% Shared, ]
 Common_m.df$Sex <- 'Male'
 
@@ -171,18 +180,18 @@ Common_m.df$Sex <- 'Male'
 Common.df <- rbind(Common_f.df, Common_m.df)
 
 # x and y lims
-max(Common.df$Mean_XIST) # 141.7757
-max(Common.df$R2_MeanX) # 0.5555296
+max(Common.df$Median_XIST) # 135.85
+max(Common.df$R2_MedX) # 0.8402523
 
 # Scatter plot
 pdf(XIST.R2_SCATTER)
-ggplot(Common.df, aes(x=Mean_XIST, y=R2_MeanX)) +
+ggplot(Common.df, aes(x=Median_XIST, y=R2_MedX)) +
   geom_point(aes(shape=Sex, fill=Sex), size=2) +
   scale_shape_manual(values=c(21,22)) +
   scale_fill_manual(values=c('blue', 'green')) +
-  ggtitle('R^2 for XIST and Mean X vs Mean XIST') +
-  xlab('Mean XIST') +
-  ylab('R2 for XIST and Mean X') +
+  ggtitle('R^2 for XIST and Median X vs Median XIST') +
+  xlab('Median XIST') +
+  ylab('R2 for XIST and Median X') +
   xlim(0,150) +
   ylim(0,1)
 dev.off()
@@ -193,12 +202,14 @@ dev.off()
 # For future reference, don't use plotly; You have to pay for a subscription to use pdf()/tiff() with plotly objects 
 # Printed plots using viewer
 
+#### Skipping for now; Excluded XIST when calculating median X, so these are actually the original XIST TPMs ###
+
 # Collapse list of dfs into one with just XIST column
-f.df <- ldply(f.MeanX_Vs_XIST, data.frame)
+f.df <- ldply(f.MedX_Vs_XIST, data.frame)
 f.df$Tissue <- f.df$.id
 f.df$.id <- NULL
 
-m.df <- ldply(m.MeanX_Vs_XIST, data.frame)
+m.df <- ldply(m.MedX_Vs_XIST, data.frame)
 m.df$Tissue <- m.df$.id
 m.df$.id <- NULL
 
@@ -210,8 +221,8 @@ Brain_Tissues <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia 
                    "Brain - Hypothalamus", "Brain - Spinal cord (cervical c-1)",       
                    "Brain - Amygdala", "Brain - Cerebellum")
 
-f.Not_Brain <- setdiff(names(lm_f.MeanX_XIST), Brain_Tissues)
-m.Not_Brain <- setdiff(names(lm_m.MeanX_XIST), Brain_Tissues)
+f.Not_Brain <- setdiff(names(lm_f.MedX_XIST), Brain_Tissues)
+m.Not_Brain <- setdiff(names(lm_m.MedX_XIST), Brain_Tissues)
 
 # Subset df for plots
 Brain_f.df <- f.df[f.df$Tissue %in% Brain_Tissues,]
@@ -235,7 +246,7 @@ Violin_Func <- function(DF, RANGE, TITLE){
       split = ~Tissue,
       type = 'violin',
       box = list(visible = T),
-      meanline = list(visible = T)
+      medianline = list(visible = T)
     ) %>% 
     layout(
       title = TITLE,
@@ -245,18 +256,18 @@ Violin_Func <- function(DF, RANGE, TITLE){
     )
   return(plot)
 }
-pdf(F.BRAIN_XIST)
-Violin_Func(DF=Brain_f.df, RANGE=c(0, 5), TITLE='Violin Plots of log10 XIST Expression in Female Brain Tissues')
-dev.off()
-pdf(M.BRAIN_XIST)
-Violin_Func(DF=Brain_m.df, RANGE=c(0,5), TITLE='Violin Plots of log10 XIST Expression in Male Brain Tissues')
-dev.off()
-pdf(F.NOT_BRAIN_XIST)
-Violin_Func(DF=Not_Brain_m.df, RANGE=c(0,5), TITLE='Violin Plots of log10 XIST Expression in Male Tissues')
-dev.off()
-pdf(M.NOT_BRAIN_XIST)
-Violin_Func(DF=Not_Brain_f.df, RANGE=c(0, 5), TITLE='Violin Plots of log10 XIST Expression in Female Tissues')
-dev.off()
+#pdf(F.BRAIN_XIST)
+Violin_Func(DF=Brain_f.df, RANGE=c(0, 5), TITLE='Violin Plots of log10 Median XIST Expression in Female Brain Tissues')
+#dev.off()
+#pdf(M.BRAIN_XIST)
+Violin_Func(DF=Brain_m.df, RANGE=c(0,5), TITLE='Violin Plots of log10 Median XIST Expression in Male Brain Tissues')
+#dev.off()
+#pdf(F.NOT_BRAIN_XIST)
+Violin_Func(DF=Not_Brain_m.df, RANGE=c(0,5), TITLE='Violin Plots of log10 Median XIST Expression in Male Tissues')
+#dev.off()
+#pdf(M.NOT_BRAIN_XIST)
+Violin_Func(DF=Not_Brain_f.df, RANGE=c(0, 5), TITLE='Violin Plots of log10 Median XIST Expression in Female Tissues')
+#dev.off()
 
 # ______________________________________________________________________________________________________________________
 #  Grouped Violin Plot
@@ -284,35 +295,35 @@ p <- Sex_Specific %>%
   plot_ly(type = 'violin') %>%
   add_trace(
     x = ~Tissue[Sex_Specific$Sex == 'Female'],
-    y = ~MeanX[Sex_Specific$Sex == 'Female'],
+    y = ~MedX[Sex_Specific$Sex == 'Female'],
     legendgroup = 'Female',
     scalegroup = 'Female',
     name = 'Female',
     box = list(visible = T),
-    meanline = list(visible = T),
+    medianline = list(visible = T),
     line = list(color = 'darkblue'),
     fillcolor = 'lightblue',
     marker = list(color='darkblue')
   ) %>%
   add_trace(
     x = ~Tissue[Sex_Specific$Sex == 'Male'],
-    y = ~MeanX[Sex_Specific$Sex == 'Male'],
+    y = ~MedX[Sex_Specific$Sex == 'Male'],
     legendgroup = 'Male',
     scalegroup = 'Male',
     name = 'Male',
     box = list(visible = T),
-    meanline = list(visible = T),
+    medianline = list(visible = T),
     line = list(color = 'darkgreen'),
     fillcolor = 'lightgreen'
   ) %>% 
   layout(
-    title = 'Violin Plot of log10 Mean X Expression in Sex-Specific Tissues',
+    title = 'Violin Plot of log10 Median X Expression in Sex-Specific Tissues',
     xaxis = list(title = "Tissue Types"),
-    yaxis = list(title = "Mean X Chm Read Count", zeroline = F, range=c(0,5))
+    yaxis = list(title = "Median X Chm Read Count", zeroline = F, range=c(0,5))
   ) 
-pdf(SEX_SPECIFIC)
+#pdf(SEX_SPECIFIC)
 p
-dev.off()
+#dev.off()
 
 # ______________________________________________________________________________________________________________________
 #  Split Violin Plots 
@@ -355,33 +366,33 @@ Not_Brain_Shared.df[,1:2] <- log10(Not_Brain_Shared.df[1:2])
 Brain_Shared.df[,1:2] <- log10(Brain_Shared.df[1:2])
 
 # ylim
-max(Not_Brain_Shared.df$MeanX) # untransformed = 21.47722, log10 = 1.331978
+max(Not_Brain_Shared.df$MedX) # untransformed = 21.47722, log10 = 1.331978
 
 # Split violin function
 Split_Violin <- function(DF, TITLE, RANGE){
   plot <- plot_ly(data = DF, type = 'violin') %>%
     add_trace(
       x = ~Tissue[DF$Sex == 'Female'],
-      y = ~MeanX[DF$Sex == 'Female'],
+      y = ~MedX[DF$Sex == 'Female'],
       legendgroup = 'Female',
       scalegroup = 'Female',
       name = 'Female',
       side = 'negative',
       box = list(visible = T),
-      meanline = list(visible = T),
+      medianline = list(visible = T),
       line = list(color = 'darkblue'),
       fillcolor = 'darkblue',
       marker = list(color='darkblue')
     ) %>%
     add_trace(
       x = ~Tissue[DF$Sex == 'Male'],
-      y = ~MeanX[DF$Sex == 'Male'],
+      y = ~MedX[DF$Sex == 'Male'],
       legendgroup = 'Male',
       scalegroup = 'Male',
       name = 'Male',
       side = 'positive',
       box = list(visible = T),
-      meanline = list(visible = T),
+      medianline = list(visible = T),
       line = list(color = 'darkgreen'),
       fillcolor = 'lightgreen',
       marker = list(color='darkgreen')
@@ -389,20 +400,20 @@ Split_Violin <- function(DF, TITLE, RANGE){
     layout(
       title = TITLE,
       xaxis = list(title = "Tissue Types"),
-      yaxis = list(title = "Mean X Chm Read Count", zeroline = F, range=RANGE)
+      yaxis = list(title = "Median X Chm Read Count", zeroline = F, range=RANGE)
     ) 
   return(plot)
 }
-pdf(NOT_BRAIN_VIOLIN)
+#pdf(NOT_BRAIN_VIOLIN)
 Split_Violin(DF=Not_Brain_Shared.df, 
-             TITLE="log10 Mean X Chromosome Expression in Tissues Common to Both Sexes",
+             TITLE="log10 Median X Chromosome Expression in Tissues Common to Both Sexes",
              RANGE=c(0,5))
-dev.off()
-pdf(BRAIN_VIOLIN)
+#dev.off()
+#pdf(BRAIN_VIOLIN)
 Split_Violin(DF=Brain_Shared.df, 
-             TITLE="log10 Mean X Chromosome Expression in Female and Male Brain Tissues",
+             TITLE="log10 Median X Chromosome Expression in Female and Male Brain Tissues",
              RANGE=c(0,5))
-dev.off()
+#dev.off()
 
 # ______________________________________________________________________________________________________________________
 #  Venn diagram; overlap between gene classification schemes
@@ -447,10 +458,10 @@ Category_Lst <- c('Silenced In Both', 'Silenced In Tukainen', 'Silenced In Balat
                   'Invariable In Balaton', 'Invariable Immune Genes', 'All Evaluated In Both', 'Not Evaluated In Either', 
                   'Immune Genes Not Evaluated', 'PAR Genes In Balaton')
 
-Columns_Lst <- c('R2_Silenced_Mean', 'R2_Tuk_Silenced_Mean', 'R2_Bal_Silenced_Mean', 'R2_One_Silenced_Mean',
-                 'R2_Immune_Silenced_Mean', 'R2_One_Variable_Mean', 'R2_Tuk_Variable_Mean', 'R2_Bal_Variable_Mean', 
-                 'R2_Immune_Variable_Mean', 'R2_One_Incomplete_Mean', 'R2_Tuk_Incomplete_Mean', 'R2_Bal_Incomplete_Mean', 
-                 'R2_Immune_Incomplete_Mean', 'R2_All_Eval', 'R2_Not_Eval', 'R2_Immune_Not_Eval', 'R2_PAR')
+Columns_Lst <- c('R2_Silenced_Median', 'R2_Tuk_Silenced_Median', 'R2_Bal_Silenced_Median', 'R2_One_Silenced_Median',
+                 'R2_Immune_Silenced_Median', 'R2_One_Variable_Median', 'R2_Tuk_Variable_Median', 'R2_Bal_Variable_Median', 
+                 'R2_Immune_Variable_Median', 'R2_One_Incomplete_Median', 'R2_Tuk_Incomplete_Median', 'R2_Bal_Incomplete_Median', 
+                 'R2_Immune_Incomplete_Median', 'R2_All_Eval', 'R2_Not_Eval', 'R2_Immune_Not_Eval', 'R2_PAR')
 
 # Function to subset and reshape df 
 Fem_Subset <- function(SUBSET, CAT){
@@ -489,7 +500,7 @@ plot <- plot_ly(data = Correlations.df, type = 'violin') %>%
       name = 'Female',
       side = 'negative',
       box = list(visible = T),
-      meanline = list(visible = T),
+      medianline = list(visible = T),
       line = list(color = 'darkblue'),
       fillcolor = 'darkblue',
       marker = list(color='darkblue')
@@ -502,7 +513,7 @@ plot <- plot_ly(data = Correlations.df, type = 'violin') %>%
       name = 'Male',
       side = 'positive',
       box = list(visible = T),
-      meanline = list(visible = T),
+      medianline = list(visible = T),
       line = list(color = 'darkgreen'),
       fillcolor = 'lightgreen',
       marker = list(color='darkgreen')
@@ -512,9 +523,9 @@ plot <- plot_ly(data = Correlations.df, type = 'violin') %>%
       xaxis = list(title = "Gene Subset"),
       yaxis = list(title = "R^2", zeroline = F, range=c(0,1))
     ) 
-pdf(R2_VIOLIN)
+#pdf(R2_VIOLIN)
 plot
-dev.off()
+#dev.off()
 
 
 
