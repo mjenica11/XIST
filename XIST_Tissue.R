@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 # Perform linear regression on the gene count data (version 7).
 # Fit linear models: 
 # Reponse variable: Mean X chromosome expression and various sets of X-linked genes 
@@ -12,11 +14,11 @@ GENCODE <- "gencode.v19.genes.v7.patched_contigs.gff3"
 GENE_LST <- "~/XIST/Files/X_Genes_Status.json"
 
 # Results
-LM_FEM <- "~/XIST/Tissue/LM/Female_Tissue_Correlations.csv"
-LM_MALE <- "~/XIST/Tissue/LM/Male_Tissue_Correlations.csv"
+LM_FEM <- "~/XIST/Tissue/XTotal/Female_Tissue_Correlations.csv"
+LM_MALE <- "~/XIST/Tissue/XTotal/Male_Tissue_Correlations.csv"
 
 # Session data 
-DATA <- "~/XIST/Tissue/XIST_Tissue_121919.RData"
+DATA <- "~/XIST/Tissue/XTotal/XTotal_012820.RData"
 
 # Load libraries
 library(readr) 
