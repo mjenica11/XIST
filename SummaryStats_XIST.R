@@ -4,13 +4,16 @@
 setwd("~/XIST/")
 
 # Input
-DATA <- "~/XIST/Gene_Tissue_121919.RData"
+DATA <- "~/XIST/Tissue/XTotal/XTotal_012820.RData"
 
 # Output
-AVG <- "~/XIST/Tissue/Tissue_Linear_Model_Averages.csv"
-SLOPES <- "~/XIST/Tissue/Tissue_Slopes_Table.csv"
-MEANX_WILCOX <- "~/XIST/Tissue/Wilcox_MeanX.csv"
-XIST_WILCOX <- "~/XIST/Tissue/Wilcox_XIST.csv"
+AVG <- "~/XIST/Tissue/XTotal/Tissue_Linear_Model_Averages.csv"
+SLOPES <- "~/XIST/Tissue/XTotal/Tissue_Slopes_Table.csv"
+MEANX_WILCOX <- "~/XIST/Tissue/XTotal/Wilcox_MeanX.csv"
+XIST_WILCOX <- "~/XIST/Tissue/XTotal/Wilcox_XIST.csv"
+
+# packages
+library(data.table)
 
 # Load data
 load(DATA)
