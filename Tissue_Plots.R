@@ -17,7 +17,7 @@ M.NOT_BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Mean/Male_NotBrain_XIST.pdf"
 SEX_SPECIFIC <- "~/XIST/Tissue/Xpressed/Mean/Sex_Specific_Violin.pdf"
 NOT_BRAIN_VIOLIN <- "~/XIST/Tissue/Xpressed/Mean/NotBrain_Violin.pdf"
 BRAIN_VIOLIN <- "~/XIST/Tissue/Xpressed/Mean/Brain_Violin.pdf"
-XIST.R2_SCATTER <- "~/XIST/Tissue/Xpressed/Mean/R2_XIST_and_MeanX_Vs_MeanXIST.pdf"
+XIST.R2_SCATTER <- "~/XIST/Tissue/Xpressed/Mean/R2_vs_MeanXIST.pdf"
 VENN <- "~/XIST/Tissue/Xpressed/Mean/Venn_GeneCategories.pdf"
 R2_VIOLIN <- "~/XIST/Tissue/Xpressed/Mean/R2_Violin.pdf"
 
@@ -167,12 +167,12 @@ Shared <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",
             "Artery - Aorta", "Liver", "Kidney - Cortex", "Bladder")
 
 # df of R2_MeanX and Mean_XIST for both females and males
-Subset_f.df <- f.Regression[ ,c('Tissue', 'R2_MeanX', 'Mean_XIST')]
+Subset_f.df <- f.Regression[ ,c('Tissue', 'R2_MeanX', 'Mean_XIST', 'pval_MeanX')]
 Common_f.df <- Subset_f.df[Subset_f.df$Tissue %in% Shared, ]
 Common_f.df$Sex <- 'Female'
 
 # Add values from males
-Subset_m.df <- m.Regression[ ,c('Tissue', 'R2_MeanX', 'Mean_XIST')]
+Subset_m.df <- m.Regression[ ,c('Tissue', 'R2_MeanX', 'Mean_XIST', 'pval_MeanX')]
 Common_m.df <- Subset_m.df[Subset_m.df$Tissue %in% Shared, ]
 Common_m.df$Sex <- 'Male'
 
@@ -186,14 +186,14 @@ max(Common.df$R2_MeanX) # 0.5555296
 # Scatter plot
 pdf(XIST.R2_SCATTER)
 ggplot(Common.df, aes(x=Mean_XIST, y=R2_MeanX)) +
-  geom_point(aes(shape=Sex, fill=Sex), size=2) +
+  geom_point(aes(shape=Sex, fill=Sex, alpha=ifelse(pval_MeanX<0.05, 1, 0), size=0.5)) +
   scale_shape_manual(values=c(21,22)) +
   scale_fill_manual(values=c('blue', 'green')) +
   ggtitle('R^2 for XIST and Mean X vs Mean XIST') +
   xlab('Mean XIST') +
   ylab('R2 for XIST and Mean X') +
   xlim(0,150) +
-  ylim(0,1)
+  ylim(0,1) 
 dev.off()
 
 # ______________________________________________________________________________________________________________________
