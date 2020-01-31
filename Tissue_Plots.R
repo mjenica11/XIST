@@ -115,40 +115,9 @@ m.Scatter <- Map(Scatter_Func,
 dev.off()
 
 # ______________________________________________________________________________________________________________________
-#  Scatter plot of Mean X vs XIST R2 values across female/male tissues
+# Prepare df for plotting R2 scatter plots
 # ______________________________________________________________________________________________________________________
-# If I want to keep fe/male plots seperate
-# R2_Func <- function(DF, SEX){
-#   plot <- ggplot(DF, aes(x=Tissue, y=R2_MeanX)) + # refer directly to df columns
-#     geom_point() +
-#     ggtitle(paste('Scatter plot of Mean X vs XIST R2 in', SEX, 'Tissues')) +
-#     xlab('Tissue Type') +
-#     ylab('R^2 Mean X vs XIST') +
-#     ylim(c(0,1)) +
-#     theme(axis.text.x = element_text(angle = 90, hjust = 1))
-#   return(plot)
-# }
-# R2_Func(DF=m.Regression, SEX='Male')
-
-# Plot females and males together
-R2_Func <- function(DF1, DF2){
-  plot <- ggplot(DF1, aes(x=Tissue, y=R2_MeanX)) + # refer directly to df columns
-    geom_point(color='blue') +
-    geom_point(data=DF2, aes(x=Tissue, y=R2_MeanX), color='green') +
-    ggtitle('Scatter plot of Mean X vs XIST R2 in Female and Male Tissues') +
-    xlab('Tissue Type') +
-    ylab('R^2 Mean X vs XIST') +
-    ylim(c(0,1)) +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1))
-  return(plot)
-}
-pdf(R2_SCATTER)
-R2_Func(DF1=f.Regression, DF2=m.Regression)
-dev.off()
-
-# ______________________________________________________________________________________________________________________
-#  Scatter plot of R^2 of MeanX and XIST vs XIST
-# ______________________________________________________________________________________________________________________
+# Combine relevant cols from dfs
 Shared <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",
             "Brain - Anterior cingulate cortex (BA24)", "Brain - Frontal Cortex (BA9)",
             "Brain - Cerebellar Hemisphere", "Brain - Caudate (basal ganglia)",
@@ -183,10 +152,44 @@ Common.df <- rbind(Common_f.df, Common_m.df)
 max(Common.df$Mean_XIST) # 141.7757
 max(Common.df$R2_MeanX) # 0.5555296
 
+# Add col with pval factor (p> or < 0.05)
+Common.df$p_Factor <- as.factor(Common.df$pval_MeanX<0.05)
+head(Common.df)
+
+
+# ______________________________________________________________________________________________________________________
+#  Scatter plot of Mean X vs XIST R2 values across female/male tissues
+# ______________________________________________________________________________________________________________________
+# Plot females and males together
+pdf(R2_SCATTER)
+ggplot(Common.df, aes(x=Tissue, y=R2_MeanX)) + 
+ geom_point(aes(shape=Sex, fill=Sex, alpha=p_Factor)) +
+ scale_shape_manual(values=c(21,22)) +
+ scale_fill_manual(values=c('blue', 'green')) +
+ ggtitle('Scatter plot of R2 (MeanX ~ XIST) in Female and Male Tissues') +
+ xlab('Tissue Type') +
+ ylab('R2 (MeanX~ XIST') +
+ ylim(c(0,1)) +
+ theme(axis.text.x = element_text(angle = 90, hjust = 1))
+dev.off()
+
+# If I want to keep fe/male plots seperate
+#ggplot(m.Regression, aes(x=Tissue, y=R2_MeanX)) + # refer directly to df columns
+#  geom_point() +
+#  ggtitle(paste('Scatter plot of Mean X vs XIST R2 in', 'Male', 'Tissues')) +
+#  xlab('Tissue Type') +
+#  ylab('R^2 Mean X vs XIST') +
+#  ylim(c(0,1)) +
+#  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+# ______________________________________________________________________________________________________________________
+#  Scatter plot of R^2 of MeanX and XIST vs XIST
+# ______________________________________________________________________________________________________________________
+
 # Scatter plot
 pdf(XIST.R2_SCATTER)
 ggplot(Common.df, aes(x=Mean_XIST, y=R2_MeanX)) +
-  geom_point(aes(shape=Sex, fill=Sex, alpha=ifelse(pval_MeanX<0.05, 1, 0), size=0.5)) +
+  geom_point(aes(shape=Sex, fill=Sex, alpha=p_Factor)) +
   scale_shape_manual(values=c(21,22)) +
   scale_fill_manual(values=c('blue', 'green')) +
   ggtitle('R^2 for XIST and Mean X vs Mean XIST') +
