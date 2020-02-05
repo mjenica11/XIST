@@ -20,6 +20,7 @@ BRAIN_VIOLIN <- "~/XIST/Tissue/Xpressed/Mean/Brain_Violin.pdf"
 XIST.R2_SCATTER <- "~/XIST/Tissue/Xpressed/Mean/R2_vs_MeanXIST.pdf"
 VENN <- "~/XIST/Tissue/Xpressed/Mean/Venn_GeneCategories.pdf"
 R2_VIOLIN <- "~/XIST/Tissue/Xpressed/Mean/R2_Violin.pdf"
+BALATON_COR <- "~/XIST/Tissue/Xpressed/Mean/Balaton_Scatter.pdf"
 
 # Load libraries
 library(readr) 
@@ -34,6 +35,7 @@ library(plotly)
 library(VennDiagram)
 library(grDevices)
 library(grid)
+library(reshape2)
 
 # Load session data
 load(DATA)
@@ -115,6 +117,29 @@ m.Scatter <- Map(Scatter_Func,
 dev.off()
 
 # ______________________________________________________________________________________________________________________
+# R2 scatter plots of Balaton gene categories-merged 
+# ______________________________________________________________________________________________________________________
+# Subset regression df to contain only relevant data
+Bal.df <- f.Regression[,c('Tissue', 'R2_MeanX', 'R2_Bal_Silenced_Mean', 'R2_Bal_Variable_Mean', 'R2_Bal_Incomplete_Mean')]
+
+# Convert df to 'tall' format; i.e. combine n cols to one column and repeat the col containing the rownames (Tissue) n times 
+Bal.df <- melt(Bal.df, id.vars='Tissue')
+# Rename cols 
+setnames(Bal.df, old=c('variable', 'value'), new=c('LM_Test', 'R2_Value'))
+
+pdf(BALATON_COR)
+ggplot(Bal.df, aes(x=Tissue, y=R2_Value)) + 
+ geom_point(aes(color=LM_Test)) +
+# scale_shape_manual(values=c(21,22)) +
+ scale_color_manual(values=c('black', 'blue', 'green', 'red')) +
+ ggtitle('Scatter plot of R2 of Various Gene Sets in Female Tissues') +
+ xlab('Tissue Type') +
+ ylab('R2 Value') +
+ ylim(c(0,1)) +
+ theme(axis.text.x = element_text(angle = 90, hjust = 1))
+dev.off()
+
+# ______________________________________________________________________________________________________________________
 # Prepare df for plotting R2 scatter plots
 # ______________________________________________________________________________________________________________________
 # Combine relevant cols from dfs
@@ -155,7 +180,6 @@ max(Common.df$R2_MeanX) # 0.5555296
 # Add col with pval factor (p> or < 0.05)
 Common.df$p_Factor <- as.factor(Common.df$pval_MeanX<0.05)
 head(Common.df)
-
 
 # ______________________________________________________________________________________________________________________
 #  Scatter plot of Mean X vs XIST R2 values across female/male tissues
