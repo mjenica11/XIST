@@ -226,6 +226,64 @@ dev.off()
 # ______________________________________________________________________________________________________________________
 #  Single-Sex Violin Plots 
 # ______________________________________________________________________________________________________________________
+#################### TEST ##########################
+install.packages("remotes")
+60 # CRAN mirror; CA
+remotes::install_github("JanCoUnchained/ggunchained")
+1 # update all packages
+Yes # install from source packages that need to be updated
+library(ggunchained)
+
+# Prepare df
+# Collapse list of dfs into one df 
+f.df <- ldply(f.MeanX_Vs_XIST, data.frame)
+f.df$Tissue <- f.df$.id
+f.df$.id <- NULL
+f.df$XIST <- NULL
+f.df$Sex <- 'Female'
+head(f.df)
+
+m.df <- ldply(m.MeanX_Vs_XIST, data.frame)
+m.df$Tissue <- m.df$.id
+m.df$.id <- NULL
+m.df$XIST <- NULL
+m.df$Sex <- 'Male'
+head(m.df)
+
+# Seperate into brain, and two dfs non-brain tissues
+Brain_Tissues <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",                 
+                   "Brain - Anterior cingulate cortex (BA24)", "Brain - Frontal Cortex (BA9)",             
+                   "Brain - Cerebellar Hemisphere", "Brain - Caudate (basal ganglia)",          
+                   "Brain - Nucleus accumbens (basal ganglia)", "Brain - Putamen (basal ganglia)",          
+                   "Brain - Hypothalamus", "Brain - Spinal cord (cervical c-1)",       
+                   "Brain - Amygdala", "Brain - Cerebellum")
+
+f.Not_Brain <- setdiff(names(lm_f.MeanX_XIST), Brain_Tissues)
+m.Not_Brain <- setdiff(names(lm_m.MeanX_XIST), Brain_Tissues)
+
+# Subset df for plots
+Brain_f.df <- f.df[f.df$Tissue %in% Brain_Tissues,]
+Not_Brain_f.df <- f.df[f.df$Tissue %in% f.Not_Brain,]
+
+Brain_m.df <- m.df[m.df$Tissue %in% Brain_Tissues,]
+Not_Brain_m.df <- m.df[m.df$Tissue %in% m.Not_Brain,]
+
+# Combine into one df
+Brain.df <- rbind(Brain_f.df, Brain_m.df)
+head(Brain.df); tail(Brain.df)
+nrow(Brain.df) == nrow(Brain_f.df) + nrow(Brain_m.df)
+
+# ylim
+max(Brain.df$MeanX) # 76.295
+
+ggplot(Brain.df, aes(x = Tissue, y = MeanX, color = Sex, fill=Sex)) +
+   geom_split_violin(color='black') +
+   scale_fill_manual(values=c('blue', 'green')) +
+   ylim(c(0,80)) +
+   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+#################### TEST ##########################
+
 # For future reference, don't use plotly; You have to pay for a subscription to use pdf()/tiff() with plotly objects 
 # Printed plots using viewer
 
@@ -261,6 +319,7 @@ Brain_f.df[,1:2] <- log10(Brain_f.df[1:2])
 Brain_m.df[,1:2] <- log10(Brain_m.df[1:2])
 Not_Brain_f.df[,1:2] <- log10(Not_Brain_f.df[1:2])
 Not_Brain_m.df[,1:2] <- log10(Not_Brain_m.df[1:2])
+
 
 # Whole violin function
 Violin_Func <- function(DF, RANGE, TITLE){
