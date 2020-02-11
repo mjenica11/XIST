@@ -15,7 +15,7 @@ M.BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Mean/Male_Brain_XIST.pdf"
 F.NOT_BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Mean/Fem_NotBrain_XIST.pdf"
 M.NOT_BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Mean/Male_NotBrain_XIST.pdf"
 SEX_SPECIFIC <- "~/XIST/Tissue/Xpressed/Mean/Sex_Specific_Violin.pdf"
-NOT_BRAIN_VIOLIN <- "~/XIST/Tissue/Xpressed/Mean/NotBrain_Violin.pdf"
+SHARED_VIOLIN <- "~/XIST/Tissue/Xpressed/Mean/Shared_Violin.pdf"
 BRAIN_VIOLIN <- "~/XIST/Tissue/Xpressed/Mean/Brain_Violin.pdf"
 XIST.R2_SCATTER <- "~/XIST/Tissue/Xpressed/Mean/R2_vs_MeanXIST.pdf"
 VENN <- "~/XIST/Tissue/Xpressed/Mean/Venn_GeneCategories.pdf"
@@ -36,9 +36,35 @@ library(VennDiagram)
 library(grDevices)
 library(grid)
 library(reshape2)
+library(ggunchained)
 
 # Load session data
 load(DATA)
+
+# Vectors for subsetting dfs
+Brain_Tissues <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",                 
+                   "Brain - Anterior cingulate cortex (BA24)", "Brain - Frontal Cortex (BA9)",             
+                   "Brain - Cerebellar Hemisphere", "Brain - Caudate (basal ganglia)",          
+                   "Brain - Nucleus accumbens (basal ganglia)", "Brain - Putamen (basal ganglia)",          
+                   "Brain - Hypothalamus", "Brain - Spinal cord (cervical c-1)",       
+                   "Brain - Amygdala", "Brain - Cerebellum")
+
+Shared <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",
+            "Brain - Anterior cingulate cortex (BA24)", "Brain - Frontal Cortex (BA9)",
+            "Brain - Cerebellar Hemisphere", "Brain - Caudate (basal ganglia)",
+            "Brain - Nucleus accumbens (basal ganglia)", "Brain - Putamen (basal ganglia)",
+            "Brain - Hypothalamus", "Brain - Spinal cord (cervical c-1)",
+            "Brain - Amygdala", "Brain - Cerebellum", "Adipose - Subcutaneous",
+            "Muscle - Skeletal", "Artery - Tibial", "Artery - Coronary",
+            "Heart - Atrial Appendage", "Adipose - Visceral (Omentum)",
+            "Breast - Mammary Tissue", "Skin - Not Sun Exposed (Suprapubic)",
+            "Minor Salivary Gland", "Adrenal Gland", "Thyroid", "Lung","Spleen", "Pancreas",
+            "Esophagus - Muscularis", "Esophagus - Mucosa","Esophagus - Gastroesophageal Junction",
+            "Stomach", "Colon - Sigmoid", "Small Intestine - Terminal Ileum",
+            "Colon - Transverse", "Skin - Sun Exposed (Lower leg)",
+            "Nerve - Tibial", "Heart - Left Ventricle", "Pituitary",
+            "Cells - Transformed fibroblasts", "Whole Blood",
+            "Artery - Aorta", "Liver", "Kidney - Cortex", "Bladder")
 
 # ______________________________________________________________________________________________________________________
 #  QQ Plots
@@ -127,7 +153,7 @@ Bal.df <- melt(Bal.df, id.vars='Tissue')
 # Rename cols 
 setnames(Bal.df, old=c('variable', 'value'), new=c('LM_Test', 'R2_Value'))
 
-pdf(BALATON_COR)
+pdf(BALATON_COR, width=600, height=800)
 ggplot(Bal.df, aes(x=Tissue, y=R2_Value)) + 
  geom_point(aes(color=LM_Test)) +
 # scale_shape_manual(values=c(21,22)) +
@@ -143,23 +169,6 @@ dev.off()
 # Prepare df for plotting R2 scatter plots
 # ______________________________________________________________________________________________________________________
 # Combine relevant cols from dfs
-Shared <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",
-            "Brain - Anterior cingulate cortex (BA24)", "Brain - Frontal Cortex (BA9)",
-            "Brain - Cerebellar Hemisphere", "Brain - Caudate (basal ganglia)",
-            "Brain - Nucleus accumbens (basal ganglia)", "Brain - Putamen (basal ganglia)",
-            "Brain - Hypothalamus", "Brain - Spinal cord (cervical c-1)",
-            "Brain - Amygdala", "Brain - Cerebellum", "Adipose - Subcutaneous",
-            "Muscle - Skeletal", "Artery - Tibial", "Artery - Coronary",
-            "Heart - Atrial Appendage", "Adipose - Visceral (Omentum)",
-            "Breast - Mammary Tissue", "Skin - Not Sun Exposed (Suprapubic)",
-            "Minor Salivary Gland", "Adrenal Gland", "Thyroid", "Lung","Spleen", "Pancreas",
-            "Esophagus - Muscularis", "Esophagus - Mucosa","Esophagus - Gastroesophageal Junction",
-            "Stomach", "Colon - Sigmoid", "Small Intestine - Terminal Ileum",
-            "Colon - Transverse", "Skin - Sun Exposed (Lower leg)",
-            "Nerve - Tibial", "Heart - Left Ventricle", "Pituitary",
-            "Cells - Transformed fibroblasts", "Whole Blood",
-            "Artery - Aorta", "Liver", "Kidney - Cortex", "Bladder")
-
 # df of R2_MeanX and Mean_XIST for both females and males
 Subset_f.df <- f.Regression[ ,c('Tissue', 'R2_MeanX', 'Mean_XIST', 'pval_MeanX')]
 Common_f.df <- Subset_f.df[Subset_f.df$Tissue %in% Shared, ]
@@ -185,7 +194,7 @@ head(Common.df)
 #  Scatter plot of Mean X vs XIST R2 values across female/male tissues
 # ______________________________________________________________________________________________________________________
 # Plot females and males together
-pdf(R2_SCATTER)
+pdf(R2_SCATTER, width=600, height=800)
 ggplot(Common.df, aes(x=Tissue, y=R2_MeanX)) + 
  geom_point(aes(shape=Sex, fill=Sex, alpha=p_Factor)) +
  scale_shape_manual(values=c(21,22)) +
@@ -197,21 +206,11 @@ ggplot(Common.df, aes(x=Tissue, y=R2_MeanX)) +
  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 dev.off()
 
-# If I want to keep fe/male plots seperate
-#ggplot(m.Regression, aes(x=Tissue, y=R2_MeanX)) + # refer directly to df columns
-#  geom_point() +
-#  ggtitle(paste('Scatter plot of Mean X vs XIST R2 in', 'Male', 'Tissues')) +
-#  xlab('Tissue Type') +
-#  ylab('R^2 Mean X vs XIST') +
-#  ylim(c(0,1)) +
-#  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-
 # ______________________________________________________________________________________________________________________
 #  Scatter plot of R^2 of MeanX and XIST vs XIST
 # ______________________________________________________________________________________________________________________
-
 # Scatter plot
-pdf(XIST.R2_SCATTER)
+pdf(XIST.R2_SCATTER, width=600, height=800)
 ggplot(Common.df, aes(x=Mean_XIST, y=R2_MeanX)) +
   geom_point(aes(shape=Sex, fill=Sex, alpha=p_Factor)) +
   scale_shape_manual(values=c(21,22)) +
@@ -224,312 +223,152 @@ ggplot(Common.df, aes(x=Mean_XIST, y=R2_MeanX)) +
 dev.off()
 
 # ______________________________________________________________________________________________________________________
-#  Single-Sex Violin Plots 
+#  Prepare dfs of meanX and XIST expression in f + m brain tissues, sex-shared tissues, 
+#  and sex-specific tissues for violin plots 
 # ______________________________________________________________________________________________________________________
-#################### TEST ##########################
-install.packages("remotes")
-60 # CRAN mirror; CA
-remotes::install_github("JanCoUnchained/ggunchained")
-1 # update all packages
-Yes # install from source packages that need to be updated
-library(ggunchained)
-
 # Prepare df
-# Collapse list of dfs into one df 
+# Collapse list of dfs into one df of just the meanX counts
 f.df <- ldply(f.MeanX_Vs_XIST, data.frame)
 f.df$Tissue <- f.df$.id
 f.df$.id <- NULL
-f.df$XIST <- NULL
 f.df$Sex <- 'Female'
 head(f.df)
 
 m.df <- ldply(m.MeanX_Vs_XIST, data.frame)
 m.df$Tissue <- m.df$.id
 m.df$.id <- NULL
-m.df$XIST <- NULL
 m.df$Sex <- 'Male'
 head(m.df)
 
 # Seperate into brain, and two dfs non-brain tissues
-Brain_Tissues <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",                 
-                   "Brain - Anterior cingulate cortex (BA24)", "Brain - Frontal Cortex (BA9)",             
-                   "Brain - Cerebellar Hemisphere", "Brain - Caudate (basal ganglia)",          
-                   "Brain - Nucleus accumbens (basal ganglia)", "Brain - Putamen (basal ganglia)",          
-                   "Brain - Hypothalamus", "Brain - Spinal cord (cervical c-1)",       
-                   "Brain - Amygdala", "Brain - Cerebellum")
-
 f.Not_Brain <- setdiff(names(lm_f.MeanX_XIST), Brain_Tissues)
 m.Not_Brain <- setdiff(names(lm_m.MeanX_XIST), Brain_Tissues)
 
-# Subset df for plots
+# Subset MeanX dfs for plots
 Brain_f.df <- f.df[f.df$Tissue %in% Brain_Tissues,]
 Not_Brain_f.df <- f.df[f.df$Tissue %in% f.Not_Brain,]
 
 Brain_m.df <- m.df[m.df$Tissue %in% Brain_Tissues,]
 Not_Brain_m.df <- m.df[m.df$Tissue %in% m.Not_Brain,]
 
-# Combine into one df
+# Combine MeanX dfs into one df
+# Brain tissues only
 Brain.df <- rbind(Brain_f.df, Brain_m.df)
 head(Brain.df); tail(Brain.df)
 nrow(Brain.df) == nrow(Brain_f.df) + nrow(Brain_m.df)
 
-# ylim
-max(Brain.df$MeanX) # 76.295
-
-ggplot(Brain.df, aes(x = Tissue, y = MeanX, color = Sex, fill=Sex)) +
-   geom_split_violin(color='black') +
-   scale_fill_manual(values=c('blue', 'green')) +
-   ylim(c(0,80)) +
-   theme(axis.text.x = element_text(angle = 90, hjust = 1))
-
-#################### TEST ##########################
-
-# For future reference, don't use plotly; You have to pay for a subscription to use pdf()/tiff() with plotly objects 
-# Printed plots using viewer
-
-# Collapse list of dfs into one with just XIST column
-f.df <- ldply(f.MeanX_Vs_XIST, data.frame)
-f.df$Tissue <- f.df$.id
-f.df$.id <- NULL
-
-m.df <- ldply(m.MeanX_Vs_XIST, data.frame)
-m.df$Tissue <- m.df$.id
-m.df$.id <- NULL
-
-# Seperate into brain, and two dfs non-brain tissues
-Brain_Tissues <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",                 
-                   "Brain - Anterior cingulate cortex (BA24)", "Brain - Frontal Cortex (BA9)",             
-                   "Brain - Cerebellar Hemisphere", "Brain - Caudate (basal ganglia)",          
-                   "Brain - Nucleus accumbens (basal ganglia)", "Brain - Putamen (basal ganglia)",          
-                   "Brain - Hypothalamus", "Brain - Spinal cord (cervical c-1)",       
-                   "Brain - Amygdala", "Brain - Cerebellum")
-
-f.Not_Brain <- setdiff(names(lm_f.MeanX_XIST), Brain_Tissues)
-m.Not_Brain <- setdiff(names(lm_m.MeanX_XIST), Brain_Tissues)
-
-# Subset df for plots
-Brain_f.df <- f.df[f.df$Tissue %in% Brain_Tissues,]
-Not_Brain_f.df <- f.df[f.df$Tissue %in% f.Not_Brain,]
-
-Brain_m.df <- m.df[m.df$Tissue %in% Brain_Tissues,]
-Not_Brain_m.df <- m.df[m.df$Tissue %in% m.Not_Brain,]
-
-# Log transform 
-Brain_f.df[,1:2] <- log10(Brain_f.df[1:2])
-Brain_m.df[,1:2] <- log10(Brain_m.df[1:2])
-Not_Brain_f.df[,1:2] <- log10(Not_Brain_f.df[1:2])
-Not_Brain_m.df[,1:2] <- log10(Not_Brain_m.df[1:2])
-
-
-# Whole violin function
-Violin_Func <- function(DF, RANGE, TITLE){
-  plot <- DF %>%
-    plot_ly(
-      x = ~Tissue,
-      y = ~XIST,
-      split = ~Tissue,
-      type = 'violin',
-      box = list(visible = T),
-      meanline = list(visible = T)
-    ) %>% 
-    layout(
-      title = TITLE,
-      showlegend = FALSE,
-      xaxis = list(title = "Tissue Type"),
-      yaxis = list(title = "XIST", zeroline = F, range = RANGE)
-    )
-  return(plot)
-}
-pdf(F.BRAIN_XIST)
-Violin_Func(DF=Brain_f.df, RANGE=c(0, 5), TITLE='Violin Plots of log10 XIST Expression in Female Brain Tissues')
-dev.off()
-pdf(M.BRAIN_XIST)
-Violin_Func(DF=Brain_m.df, RANGE=c(0,5), TITLE='Violin Plots of log10 XIST Expression in Male Brain Tissues')
-dev.off()
-pdf(F.NOT_BRAIN_XIST)
-Violin_Func(DF=Not_Brain_m.df, RANGE=c(0,5), TITLE='Violin Plots of log10 XIST Expression in Male Tissues')
-dev.off()
-pdf(M.NOT_BRAIN_XIST)
-Violin_Func(DF=Not_Brain_f.df, RANGE=c(0, 5), TITLE='Violin Plots of log10 XIST Expression in Female Tissues')
-dev.off()
-
-# ______________________________________________________________________________________________________________________
-#  Grouped Violin Plot
-# ______________________________________________________________________________________________________________________
 # Sex-specific tissue types list
 f.Only <- setdiff(f.Not_Brain, m.Not_Brain)
 m.Only <- setdiff(m.Not_Brain, f.Not_Brain)
 
-# Subset dfs and combine to get df of one sex, not brain tissues
+# Subset MeanX dfs and combine to get df of one sex, not brain tissues
 Only_f.df <- f.df[f.df$Tissue %in% f.Only,]
 Only_m.df <- m.df[m.df$Tissue %in% m.Only,]
 
-# Add col indicating sex
+# Add col indicating sex to MeanX and XIST dfs
 Only_f.df$Sex <- 'Female'
 Only_m.df$Sex <- 'Male'
 
-# Join
-Sex_Specific <- rbind(Only_f.df, Only_m.df)
+# Join for both
+Sex_Specific.df <- rbind(Only_f.df, Only_m.df)
+head(Sex_Specific.df);tail(Sex_Specific.df)
 
-# Log transform
-Sex_Specific[,1:2] <- log10(Sex_Specific[1:2])
+# Create df of tissues excluding brain and sex-specific tissues for both
+f.Shared <- f.df[f.df$Tissue %in% Shared,]
+m.Shared <- m.df[m.df$Tissue %in% Shared,]
+
+# Join for both
+Shared.df <- rbind(f.Shared, m.Shared)
+head(Shared.df); tail(Shared.df)
+
+# ______________________________________________________________________________________________________________________
+#  MeanX Split-violin plots 
+# ______________________________________________________________________________________________________________________
+# ylims
+# Set to 90 TPM to keep yaxis proportional between plots
+max(Brain.df$MeanX) # 76.295
+max(Shared.df$MeanX) # 86.90617
+
+Split_Violin <- function(DF, TITLE){
+   ggplot(DF, aes(x = Tissue, y = MeanX, color = Sex, fill=Sex)) +
+      geom_split_violin(color='black') +
+      scale_fill_manual(values=c('blue', 'green')) +
+      ylim(c(0,90)) +
+      theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+      ggtitle(TITLE)
+}
+# Split violin plot of brain tissues
+pdf(BRAIN_VIOLIN, width=600, height=800)
+Split_Violin(DF=Brain.df, TITLE="Split violin plot of mean X expression in brain tissues")
+dev.off()
+
+# Split violin plot of sex-shared tissues
+pdf(SHARED_VIOLIN, width=600, height=800)
+Split_Violin(DF=Shared.df, TITLE="Split violin plot of mean X expression in sex-shared tissues")
+dev.off()
+
+# ______________________________________________________________________________________________________________________
+#  Sex-specific Tissues Violin Plot
+# ______________________________________________________________________________________________________________________
+# ylim
+max(Sex_Specific.df$MeanX) # 76.0642
+levels(as.factor(Sex_Specific.df$Tissue))
 
 # Plot
-p <- Sex_Specific %>%
-  plot_ly(type = 'violin') %>%
-  add_trace(
-    x = ~Tissue[Sex_Specific$Sex == 'Female'],
-    y = ~MeanX[Sex_Specific$Sex == 'Female'],
-    legendgroup = 'Female',
-    scalegroup = 'Female',
-    name = 'Female',
-    box = list(visible = T),
-    meanline = list(visible = T),
-    line = list(color = 'darkblue'),
-    fillcolor = 'lightblue',
-    marker = list(color='darkblue')
-  ) %>%
-  add_trace(
-    x = ~Tissue[Sex_Specific$Sex == 'Male'],
-    y = ~MeanX[Sex_Specific$Sex == 'Male'],
-    legendgroup = 'Male',
-    scalegroup = 'Male',
-    name = 'Male',
-    box = list(visible = T),
-    meanline = list(visible = T),
-    line = list(color = 'darkgreen'),
-    fillcolor = 'lightgreen'
-  ) %>% 
-  layout(
-    title = 'Violin Plot of log10 Mean X Expression in Sex-Specific Tissues',
-    xaxis = list(title = "Tissue Types"),
-    yaxis = list(title = "Mean X Chm Read Count", zeroline = F, range=c(0,5))
-  ) 
-pdf(SEX_SPECIFIC)
-p
+# Explicitely set the order of samples; default is alphabetical
+pdf(SEX_SPECIFIC, width=600, height=800)
+ggplot(Sex_Specific.df, 
+       aes(x = factor(Tissue, level=c("Cervix - Ectocervix", "Cervix - Endocervix", "Fallopian Tube", 
+                                      "Ovary", "Uterus", "Vagina", "Prostate", "Testis")),
+           y = MeanX,
+           color=Sex,
+           fill=Sex)) +
+   geom_violin(color='black') +
+   scale_fill_manual(values=c('blue', 'green')) +
+   ylim(c(0,80)) + 
+   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+   ggtitle("Violin plot of mean X expression in sex-specific tissues")
 dev.off()
 
 # ______________________________________________________________________________________________________________________
-#  Split Violin Plots 
+#  XIST violin plots 
 # ______________________________________________________________________________________________________________________
-# Brain; Female/Male split violin plots
-# Subset female and male dfs to only sex-shared tissues
-Shared_f.df <- f.df[f.df$Tissue %in% Shared, ]
-Shared_m.df <- m.df[m.df$Tissue %in% Shared, ]
+# Log transform just female XIST, since high variance
+head(Brain_f.df); tail(Brain_f.df)
+Brain_f.df[,1:2] <- log10(Brain_f.df[,1:2]) 
+Not_Brain_f.df[,1:2] <- log10(Not_Brain_f.df[,1:2]) 
 
-# Check that both dfs have same factor levels is Tissue column
-all(levels(factor(Shared_m.df$Tissue)) == levels(factor(Shared_f.df$Tissue))) # TRUE
-
-# Add column indicating sex 
-Shared_f.df$Sex <- 'Female' # nrow = 3704
-Shared_m.df$Sex <- 'Male'   # nrow = 7040
-
-# Merge female/male dfs containing shared tissues
-Shared.df <- rbind(Shared_f.df, Shared_m.df) # nrow = 10744; expected 
-Brain_Shared.df <- Shared.df[Shared.df$Tissue %in% Brain_Tissues,]
-
-# Not-Brain tissues shared between sexes; Split violin plot
-all.Not_Brain <- c("Adipose - Subcutaneous", "Muscle - Skeletal","Artery - Tibial", "Artery - Coronary",                        
-                   "Heart - Atrial Appendage", "Adipose - Visceral (Omentum)", "Breast - Mammary Tissue", 
-                   "Skin - Not Sun Exposed (Suprapubic)", "Minor Salivary Gland", "Adrenal Gland", "Thyroid",                                  
-                   "Lung", "Spleen", "Pancreas", "Esophagus - Muscularis",                   
-                   "Esophagus - Mucosa", "Esophagus - Gastroesophageal Junction",
-                   "Stomach", "Colon - Sigmoid","Small Intestine - Terminal Ileum", "Colon - Transverse",                       
-                   "Skin - Sun Exposed (Lower leg)", "Nerve - Tibial",                           
-                   "Heart - Left Ventricle", "Pituitary", "Cells - Transformed fibroblasts",          
-                   "Whole Blood", "Artery - Aorta","Cells - EBV-transformed lymphocytes", "Liver",                                    
-                   "Kidney - Cortex", "Bladder")    
-
-all.Not_Brain <- setdiff(Shared, Brain_Tissues)
-
-# Subset df for plots
-Not_Brain_Shared.df <- Shared.df[Shared.df$Tissue %in% all.Not_Brain,]
-
-# log transform 
-Not_Brain_Shared.df[,1:2] <- log10(Not_Brain_Shared.df[1:2])
-Brain_Shared.df[,1:2] <- log10(Brain_Shared.df[1:2])
-
-# ylim
-max(Not_Brain_Shared.df$MeanX) # untransformed = 21.47722, log10 = 1.331978
-
-# Split violin function
-Split_Violin <- function(DF, TITLE, RANGE){
-  plot <- plot_ly(data = DF, type = 'violin') %>%
-    add_trace(
-      x = ~Tissue[DF$Sex == 'Female'],
-      y = ~MeanX[DF$Sex == 'Female'],
-      legendgroup = 'Female',
-      scalegroup = 'Female',
-      name = 'Female',
-      side = 'negative',
-      box = list(visible = T),
-      meanline = list(visible = T),
-      line = list(color = 'darkblue'),
-      fillcolor = 'darkblue',
-      marker = list(color='darkblue')
-    ) %>%
-    add_trace(
-      x = ~Tissue[DF$Sex == 'Male'],
-      y = ~MeanX[DF$Sex == 'Male'],
-      legendgroup = 'Male',
-      scalegroup = 'Male',
-      name = 'Male',
-      side = 'positive',
-      box = list(visible = T),
-      meanline = list(visible = T),
-      line = list(color = 'darkgreen'),
-      fillcolor = 'lightgreen',
-      marker = list(color='darkgreen')
-    ) %>% 
-    layout(
-      title = TITLE,
-      xaxis = list(title = "Tissue Types"),
-      yaxis = list(title = "Mean X Chm Read Count", zeroline = F, range=RANGE)
-    ) 
-  return(plot)
+#Violin plot function
+XIST_Violin <- function(DF, YLIM, TITLE){
+    ggplot(DF, 
+           aes(x = Tissue,
+               y = XIST,
+               color = Tissue,
+               fill = Tissue)) +
+        geom_violin(color='black') +
+        ylim(YLIM) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+        ggtitle(TITLE)
 }
-pdf(NOT_BRAIN_VIOLIN)
-Split_Violin(DF=Not_Brain_Shared.df, 
-             TITLE="log10 Mean X Chromosome Expression in Tissues Common to Both Sexes",
-             RANGE=c(0,5))
+pdf(F.BRAIN_XIST, width=600, heigh=800)
+XIST_Violin(DF=Brain_f.df, 
+            YLIM=c(0, ceiling(max(Brain_f.df$XIST))), 
+            TITLE="Violin plot of log10 XIST expression across female brain tissues")
 dev.off()
-pdf(BRAIN_VIOLIN)
-Split_Violin(DF=Brain_Shared.df, 
-             TITLE="log10 Mean X Chromosome Expression in Female and Male Brain Tissues",
-             RANGE=c(0,5))
+pdf(F.NOT_BRAIN_XIST, width=600, heigh=800)
+XIST_Violin(DF=Not_Brain_f.df, 
+            YLIM=c(0, ceiling(max(Not_Brain_f.df$XIST))), 
+            TITLE="Violin plot of log10 XIST expression across female tissues")
 dev.off()
-
-# ______________________________________________________________________________________________________________________
-#  Venn diagram; overlap between gene classification schemes
-# ______________________________________________________________________________________________________________________
-# Venn diagram function for 2 groups
-Venn_2 <- function(a, b, TITLE){
-  venn.plot <- venn.diagram(
-    x = list('Tukiainen' = Gene_Lst[[a]], 'Balaton'= Gene_Lst[[b]]),
-    label=TRUE,
-    filename = NULL,
-    scaled = TRUE,
-    col = "transparent",
-    fill = c("darkblue", "darkgreen"),
-    main.pos = c(0.5, 1.0),
-    cex = 1.5,
-    cat.cex = 1.5,
-    main.cex = 2,
-    cat.default.pos = "outer",
-    cat.just= list(c(0, 0.5), c(0, 0.5)), 
-    cat.dist = c(0.01, 0.01),
-    cat.fontfamily = "sans",
-    main = TITLE,
-    fontfamily = "sans",
-    na = "remove",
-    inverted = FALSE)
-  grid.newpage()
-  return(grid.draw(venn.plot))
-}
-pdf(VENN)
-Venn_2(a='Incomplete_In_Tukiainen', b='Incomplete_In_Balaton', TITLE='Venn Diagram of Incomplete Genes')
-Venn_2(a='Variable_In_Tukiainen', b='Variable_In_Balaton', TITLE='Venn Diagram of Variable Genes')
-Venn_2(a='Silenced_In_Tukiainen', b='Silenced_In_Balaton', TITLE='Venn Diagram of Silenced Genes')
+pdf(M.BRAIN_XIST, width=600, heigh=800)
+XIST_Violin(DF=Brain_m.df, 
+            YLIM=c(0, ceiling(max(Brain_m.df$XIST))), 
+            TITLE="Violin plot of XIST expression across male brain tissues")
+dev.off()
+pdf(M.NOT_BRAIN_XIST, width=600, heigh=800)
+XIST_Violin(DF=Not_Brain_m.df, 
+            YLIM=c(0, ceiling(max(Not_Brain_m.df$XIST))), 
+            TITLE="Violin plot of XIST expression across male tissues")
 dev.off()
 
 # ______________________________________________________________________________________________________________________
@@ -573,43 +412,49 @@ Combined.m$Sex <- 'Male'
 
 # bind dfs
 Correlations.df <- rbind(Combined.f, Combined.m)
+head(Correlations.df); tail(Correlations.df)
 
-# Grouped violin plot
-plot <- plot_ly(data = Correlations.df, type = 'violin') %>%
-    add_trace(
-      x = ~Category[Correlations.df$Sex == 'Female'],
-      y = ~R2[Correlations.df$Sex == 'Female'],
-      legendgroup = 'Female',
-      scalegroup = 'Female',
-      name = 'Female',
-      side = 'negative',
-      box = list(visible = T),
-      meanline = list(visible = T),
-      line = list(color = 'darkblue'),
-      fillcolor = 'darkblue',
-      marker = list(color='darkblue')
-    ) %>%
-    add_trace(
-      x = ~Category[Correlations.df$Sex == 'Male'],
-      y = ~R2[Correlations.df$Sex == 'Male'],
-      legendgroup = 'Male',
-      scalegroup = 'Male',
-      name = 'Male',
-      side = 'positive',
-      box = list(visible = T),
-      meanline = list(visible = T),
-      line = list(color = 'darkgreen'),
-      fillcolor = 'lightgreen',
-      marker = list(color='darkgreen')
-    ) %>% 
-    layout(
-      title = 'Violin Plot of R^2 per Gene Subset',
-      xaxis = list(title = "Gene Subset"),
-      yaxis = list(title = "R^2", zeroline = F, range=c(0,1))
-    ) 
-pdf(R2_VIOLIN)
-plot
+# Plot
+pdf(R2_VIOLIN, width=600, heigh=800)
+ggplot(Correlations.df, aes(x = Category, y = R2, color = Sex, fill=Sex)) +
+   geom_split_violin(color='black') +
+   scale_fill_manual(values=c('blue', 'green')) +
+   ylim(c(0,1)) +
+   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+   ggtitle("Split violin plot of R2 per gene subset")
 dev.off()
 
+# ______________________________________________________________________________________________________________________
+#  Venn diagram; overlap between gene classification schemes
+# ______________________________________________________________________________________________________________________
+# Venn diagram function for 2 groups
+Venn_2 <- function(a, b, TITLE){
+  venn.plot <- venn.diagram(
+    x = list('Tukiainen' = Gene_Lst[[a]], 'Balaton'= Gene_Lst[[b]]),
+    label=TRUE,
+    filename = NULL,
+    scaled = TRUE,
+    col = "transparent",
+    fill = c("darkblue", "darkgreen"),
+    main.pos = c(0.5, 1.0),
+    cex = 1.5,
+    cat.cex = 1.5,
+    main.cex = 2,
+    cat.default.pos = "outer",
+    cat.just= list(c(0, 0.5), c(0, 0.5)), 
+    cat.dist = c(0.01, 0.01),
+    cat.fontfamily = "sans",
+    main = TITLE,
+    fontfamily = "sans",
+    na = "remove",
+    inverted = FALSE)
+  grid.newpage()
+  return(grid.draw(venn.plot))
+}
+pdf(VENN)
+Venn_2(a='Incomplete_In_Tukiainen', b='Incomplete_In_Balaton', TITLE='Venn Diagram of Incomplete Genes')
+Venn_2(a='Variable_In_Tukiainen', b='Variable_In_Balaton', TITLE='Venn Diagram of Variable Genes')
+Venn_2(a='Silenced_In_Tukiainen', b='Silenced_In_Balaton', TITLE='Venn Diagram of Silenced Genes')
+dev.off()
 
 
