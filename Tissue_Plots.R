@@ -19,6 +19,7 @@ SHARED_VIOLIN <- "~/XIST/Tissue/Xpressed/Mean/Shared_Violin.pdf"
 BRAIN_VIOLIN <- "~/XIST/Tissue/Xpressed/Mean/Brain_Violin.pdf"
 XIST.R2_SCATTER <- "~/XIST/Tissue/Xpressed/Mean/R2_vs_MeanXIST.pdf"
 VENN <- "~/XIST/Tissue/Xpressed/Mean/Venn_GeneCategories.pdf"
+INTER_VENN <- "~/XIST/Tissue/Xpressed/Mean/Intersect_Venn.pdf"
 R2_VIOLIN <- "~/XIST/Tissue/Xpressed/Mean/R2_Violin.pdf"
 BALATON_COR <- "~/XIST/Tissue/Xpressed/Mean/Balaton_Scatter.pdf"
 
@@ -32,11 +33,11 @@ library(stringr)
 library(broom)
 library(rjson)
 library(plotly)
-library(VennDiagram)
 library(grDevices)
 library(grid)
 library(reshape2)
 library(ggunchained)
+library(ggVennDiagram)
 
 # Load session data
 load(DATA)
@@ -141,6 +142,7 @@ m.Scatter <- Map(Scatter_Func,
                  R2=m.Regression[['R2_MeanX']],
                  PVAL=m.Regression[['pval_MeanX']])
 dev.off()
+
 
 # ______________________________________________________________________________________________________________________
 # R2 scatter plots of Balaton gene categories-merged 
@@ -427,34 +429,38 @@ dev.off()
 # ______________________________________________________________________________________________________________________
 #  Venn diagram; overlap between gene classification schemes
 # ______________________________________________________________________________________________________________________
-# Venn diagram function for 2 groups
-Venn_2 <- function(a, b, TITLE){
-  venn.plot <- venn.diagram(
-    x = list('Tukiainen' = Gene_Lst[[a]], 'Balaton'= Gene_Lst[[b]]),
-    label=TRUE,
-    filename = NULL,
-    scaled = TRUE,
-    col = "transparent",
-    fill = c("darkblue", "darkgreen"),
-    main.pos = c(0.5, 1.0),
-    cex = 1.5,
-    cat.cex = 1.5,
-    main.cex = 2,
-    cat.default.pos = "outer",
-    cat.just= list(c(0, 0.5), c(0, 0.5)), 
-    cat.dist = c(0.01, 0.01),
-    cat.fontfamily = "sans",
-    main = TITLE,
-    fontfamily = "sans",
-    na = "remove",
-    inverted = FALSE)
-  grid.newpage()
-  return(grid.draw(venn.plot))
-}
+summary(Gene_Lst)
+
+# Plot
 pdf(VENN)
-Venn_2(a='Incomplete_In_Tukiainen', b='Incomplete_In_Balaton', TITLE='Venn Diagram of Incomplete Genes')
-Venn_2(a='Variable_In_Tukiainen', b='Variable_In_Balaton', TITLE='Venn Diagram of Variable Genes')
-Venn_2(a='Silenced_In_Tukiainen', b='Silenced_In_Balaton', TITLE='Venn Diagram of Silenced Genes')
+ggVennDiagram(Gene_Lst[c('Incomplete_In_Tukiainen', 'Incomplete_In_Balaton')]) +
+    scale_fill_gradient(low='blue', high='red') +
+    ggtitle('Venn Diagram of Incomplete Genes')
+ggVennDiagram(Gene_Lst[c('Variable_In_Tukiainen', 'Variable_In_Balaton')]) +
+    scale_fill_gradient(low='blue', high='red') +
+    ggtitle('Venn Diagram of Variable Genes')
+ggVennDiagram(Gene_Lst[c('Silenced_In_Tukiainen', 'Silenced_In_Balaton')]) +
+    scale_fill_gradient(low='blue', high='red') +
+    ggtitle('Venn Diagram of Silenced Genes')
 dev.off()
 
+# ______________________________________________________________________________________________________________________
+# Venn diagram; intersection of gene intersections 
+# ______________________________________________________________________________________________________________________
+# Make a list of the intersection of the silenced, variable, and incomplete gene sets in both studies
+Incomp <- intersect(Gene_Lst[[12]], Gene_Lst[[15]])
+Var <- intersect(Gene_Lst[[13]], Gene_Lst[[17]])
+Sil <- intersect(Gene_Lst[[11]], Gene_Lst[[14]])
+
+# Combine into one list
+Inter <- list(Incomp, Var, Sil)
+names(Inter) <- c("Incomplete", "Variable", "Silenced")
+summary(Inter)
+
+# Plot
+pdf(INTER_VENN)
+ggVennDiagram(Inter[1:3]) +
+    scale_fill_gradient(low='blue', high='red') +
+    ggtitle('Venn Diagram of Intersection of Intersection of Gene Categories')
+dev.off()
 
