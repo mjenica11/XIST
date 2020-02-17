@@ -35,9 +35,11 @@ library(rjson)
 library(plotly)
 library(grDevices)
 library(grid)
+library(gridExtra)
 library(reshape2)
 library(ggunchained)
 library(ggVennDiagram)
+library(ggplot2)
 
 # Load session data
 load(DATA)
@@ -155,7 +157,6 @@ Bal.df <- melt(Bal.df, id.vars='Tissue')
 # Rename cols 
 setnames(Bal.df, old=c('variable', 'value'), new=c('LM_Test', 'R2_Value'))
 
-pdf(BALATON_COR, width=600, height=800)
 ggplot(Bal.df, aes(x=Tissue, y=R2_Value)) + 
  geom_point(aes(color=LM_Test)) +
 # scale_shape_manual(values=c(21,22)) +
@@ -165,7 +166,7 @@ ggplot(Bal.df, aes(x=Tissue, y=R2_Value)) +
  ylab('R2 Value') +
  ylim(c(0,1)) +
  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-dev.off()
+ggsave(BALATON_COR)
 
 # ______________________________________________________________________________________________________________________
 # Prepare df for plotting R2 scatter plots
@@ -196,23 +197,21 @@ head(Common.df)
 #  Scatter plot of Mean X vs XIST R2 values across female/male tissues
 # ______________________________________________________________________________________________________________________
 # Plot females and males together
-pdf(R2_SCATTER, width=600, height=800)
 ggplot(Common.df, aes(x=Tissue, y=R2_MeanX)) + 
  geom_point(aes(shape=Sex, fill=Sex, alpha=p_Factor)) +
  scale_shape_manual(values=c(21,22)) +
  scale_fill_manual(values=c('blue', 'green')) +
  ggtitle('Scatter plot of R2 (MeanX ~ XIST) in Female and Male Tissues') +
  xlab('Tissue Type') +
- ylab('R2 (MeanX~ XIST') +
+ ylab('R2 (MeanX~ XIST)') +
  ylim(c(0,1)) +
  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-dev.off()
+ggsave(R2_SCATTER)
 
 # ______________________________________________________________________________________________________________________
 #  Scatter plot of R^2 of MeanX and XIST vs XIST
 # ______________________________________________________________________________________________________________________
 # Scatter plot
-pdf(XIST.R2_SCATTER, width=600, height=800)
 ggplot(Common.df, aes(x=Mean_XIST, y=R2_MeanX)) +
   geom_point(aes(shape=Sex, fill=Sex, alpha=p_Factor)) +
   scale_shape_manual(values=c(21,22)) +
@@ -222,7 +221,7 @@ ggplot(Common.df, aes(x=Mean_XIST, y=R2_MeanX)) +
   ylab('R2 for XIST and Mean X') +
   xlim(0,150) +
   ylim(0,1) 
-dev.off()
+ggsave(XIST.R2_SCATTER)
 
 # ______________________________________________________________________________________________________________________
 #  Prepare dfs of meanX and XIST expression in f + m brain tissues, sex-shared tissues, 
@@ -300,14 +299,12 @@ Split_Violin <- function(DF, TITLE){
       ggtitle(TITLE)
 }
 # Split violin plot of brain tissues
-pdf(BRAIN_VIOLIN, width=600, height=800)
 Split_Violin(DF=Brain.df, TITLE="Split violin plot of mean X expression in brain tissues")
-dev.off()
+ggsave(BRAIN_VIOLIN)
 
 # Split violin plot of sex-shared tissues
-pdf(SHARED_VIOLIN, width=600, height=800)
 Split_Violin(DF=Shared.df, TITLE="Split violin plot of mean X expression in sex-shared tissues")
-dev.off()
+ggsave(SHARED_VIOLIN)
 
 # ______________________________________________________________________________________________________________________
 #  Sex-specific Tissues Violin Plot
@@ -318,7 +315,6 @@ levels(as.factor(Sex_Specific.df$Tissue))
 
 # Plot
 # Explicitely set the order of samples; default is alphabetical
-pdf(SEX_SPECIFIC, width=600, height=800)
 ggplot(Sex_Specific.df, 
        aes(x = factor(Tissue, level=c("Cervix - Ectocervix", "Cervix - Endocervix", "Fallopian Tube", 
                                       "Ovary", "Uterus", "Vagina", "Prostate", "Testis")),
@@ -330,7 +326,7 @@ ggplot(Sex_Specific.df,
    ylim(c(0,80)) + 
    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
    ggtitle("Violin plot of mean X expression in sex-specific tissues")
-dev.off()
+ggsave(SEX_SPECIFIC, width=5, height=5)
 
 # ______________________________________________________________________________________________________________________
 #  XIST violin plots 
@@ -350,28 +346,25 @@ XIST_Violin <- function(DF, YLIM, TITLE){
         geom_violin(color='black') +
         ylim(YLIM) +
         theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-        ggtitle(TITLE)
+        ggtitle(TITLE) +
+        guides(fill=FALSE)
 }
-pdf(F.BRAIN_XIST, width=600, heigh=800)
 XIST_Violin(DF=Brain_f.df, 
             YLIM=c(0, ceiling(max(Brain_f.df$XIST))), 
             TITLE="Violin plot of log10 XIST expression across female brain tissues")
-dev.off()
-pdf(F.NOT_BRAIN_XIST, width=600, heigh=800)
+ggsave(F.BRAIN_XIST)
 XIST_Violin(DF=Not_Brain_f.df, 
             YLIM=c(0, ceiling(max(Not_Brain_f.df$XIST))), 
             TITLE="Violin plot of log10 XIST expression across female tissues")
-dev.off()
-pdf(M.BRAIN_XIST, width=600, heigh=800)
+ggsave(F.NOT_BRAIN_XIST)
 XIST_Violin(DF=Brain_m.df, 
             YLIM=c(0, ceiling(max(Brain_m.df$XIST))), 
             TITLE="Violin plot of XIST expression across male brain tissues")
-dev.off()
-pdf(M.NOT_BRAIN_XIST, width=600, heigh=800)
+ggsave(M.BRAIN_XIST)
 XIST_Violin(DF=Not_Brain_m.df, 
             YLIM=c(0, ceiling(max(Not_Brain_m.df$XIST))), 
             TITLE="Violin plot of XIST expression across male tissues")
-dev.off()
+ggsave(M.NOT_BRAIN_XIST)
 
 # ______________________________________________________________________________________________________________________
 #  Violin plot: R2 by gene classification scheme per tissue
@@ -417,14 +410,13 @@ Correlations.df <- rbind(Combined.f, Combined.m)
 head(Correlations.df); tail(Correlations.df)
 
 # Plot
-pdf(R2_VIOLIN, width=600, heigh=800)
 ggplot(Correlations.df, aes(x = Category, y = R2, color = Sex, fill=Sex)) +
    geom_split_violin(color='black') +
    scale_fill_manual(values=c('blue', 'green')) +
    ylim(c(0,1)) +
    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
    ggtitle("Split violin plot of R2 per gene subset")
-dev.off()
+ggsave(R2_VIOLIN, width=5, height=5)
 
 # ______________________________________________________________________________________________________________________
 #  Venn diagram; overlap between gene classification schemes
@@ -432,7 +424,7 @@ dev.off()
 summary(Gene_Lst)
 
 # Plot
-pdf(VENN)
+pdf(VENN, onefile=TRUE)
 ggVennDiagram(Gene_Lst[c('Incomplete_In_Tukiainen', 'Incomplete_In_Balaton')]) +
     scale_fill_gradient(low='blue', high='red') +
     ggtitle('Venn Diagram of Incomplete Genes')
@@ -443,7 +435,6 @@ ggVennDiagram(Gene_Lst[c('Silenced_In_Tukiainen', 'Silenced_In_Balaton')]) +
     scale_fill_gradient(low='blue', high='red') +
     ggtitle('Venn Diagram of Silenced Genes')
 dev.off()
-
 # ______________________________________________________________________________________________________________________
 # Venn diagram; intersection of gene intersections 
 # ______________________________________________________________________________________________________________________
@@ -458,9 +449,8 @@ names(Inter) <- c("Incomplete", "Variable", "Silenced")
 summary(Inter)
 
 # Plot
-pdf(INTER_VENN)
 ggVennDiagram(Inter[1:3]) +
     scale_fill_gradient(low='blue', high='red') +
     ggtitle('Venn Diagram of Intersection of Intersection of Gene Categories')
-dev.off()
+ggsave(INTER_VENN)
 
