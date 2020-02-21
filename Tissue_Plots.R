@@ -34,7 +34,6 @@ library(broom)
 library(rjson)
 library(plotly)
 library(grDevices)
-library(grid)
 library(gridExtra)
 library(reshape2)
 library(ggunchained)
@@ -134,7 +133,7 @@ f.Scatter <- Map(Scatter_Func,
                  PVAL=f.Regression[['pval_MedX']])
 dev.off()
 
-# set x lim to male max(XIST) but keep y lim as female max(MeanX)
+# set x lim to male max(XIST) but keep y lim as female max(median X)
 pdf(M.SCATTER)
 m.Scatter <- Map(Scatter_Func, 
                  LM=lm_m.MedX_XIST, 
@@ -171,7 +170,7 @@ ggsave(BALATON_COR)
 # Prepare df for plotting R2 scatter plots
 # ______________________________________________________________________________________________________________________
 # Combine relevant cols from dfs
-# df of R2_MeanX and Mean_XIST for both females and males
+# df of R2_median X and median_XIST for both females and males
 Subset_f.df <- f.Regression[ ,c('Tissue', 'R2_MedX', 'Median_XIST', 'pval_MedX')]
 Common_f.df <- Subset_f.df[Subset_f.df$Tissue %in% Shared, ]
 Common_f.df$Sex <- 'Female'
@@ -193,7 +192,7 @@ Common.df$p_Factor <- as.factor(Common.df$pval_MedX<0.05)
 head(Common.df)
 
 # ______________________________________________________________________________________________________________________
-#  Scatter plot of Mean X vs XIST R2 values across female/male tissues
+#  Scatter plot of median X vs XIST R2 values across female/male tissues
 # ______________________________________________________________________________________________________________________
 # Plot females and males together
 ggplot(Common.df, aes(x=Tissue, y=R2_MedX)) + 
@@ -208,7 +207,7 @@ ggplot(Common.df, aes(x=Tissue, y=R2_MedX)) +
 ggsave(R2_SCATTER)
 
 # ______________________________________________________________________________________________________________________
-#  Scatter plot of R^2 of MeanX and XIST vs XIST
+#  Scatter plot of R^2 of median X and XIST vs XIST
 # ______________________________________________________________________________________________________________________
 # Scatter plot
 ggplot(Common.df, aes(x=Median_XIST, y=R2_MedX)) +
@@ -223,11 +222,11 @@ ggplot(Common.df, aes(x=Median_XIST, y=R2_MedX)) +
 ggsave(XIST.R2_SCATTER)
 
 # ______________________________________________________________________________________________________________________
-#  Prepare dfs of meanX and XIST expression in f + m brain tissues, sex-shared tissues, 
+#  Prepare dfs of median X and XIST expression in f + m brain tissues, sex-shared tissues, 
 #  and sex-specific tissues for violin plots 
 # ______________________________________________________________________________________________________________________
 # Prepare df
-# Collapse list of dfs into one df of just the meanX counts
+# Collapse list of dfs into one df of just the median X counts
 f.df <- ldply(f.MedX_Vs_XIST, data.frame)
 f.df$Tissue <- f.df$.id
 f.df$.id <- NULL
@@ -244,14 +243,14 @@ head(m.df)
 f.Not_Brain <- setdiff(names(lm_f.MedX_XIST), Brain_Tissues)
 m.Not_Brain <- setdiff(names(lm_m.MedX_XIST), Brain_Tissues)
 
-# Subset MeanX dfs for plots
+# Subset median X dfs for plots
 Brain_f.df <- f.df[f.df$Tissue %in% Brain_Tissues,]
 Not_Brain_f.df <- f.df[f.df$Tissue %in% f.Not_Brain,]
 
 Brain_m.df <- m.df[m.df$Tissue %in% Brain_Tissues,]
 Not_Brain_m.df <- m.df[m.df$Tissue %in% m.Not_Brain,]
 
-# Combine MeanX dfs into one df
+# Combine median X dfs into one df
 # Brain tissues only
 Brain.df <- rbind(Brain_f.df, Brain_m.df)
 head(Brain.df); tail(Brain.df)
@@ -261,11 +260,11 @@ nrow(Brain.df) == nrow(Brain_f.df) + nrow(Brain_m.df)
 f.Only <- setdiff(f.Not_Brain, m.Not_Brain)
 m.Only <- setdiff(m.Not_Brain, f.Not_Brain)
 
-# Subset MeanX dfs and combine to get df of one sex, not brain tissues
+# Subset median dfs and combine to get df of one sex, not brain tissues
 Only_f.df <- f.df[f.df$Tissue %in% f.Only,]
 Only_m.df <- m.df[m.df$Tissue %in% m.Only,]
 
-# Add col indicating sex to MeanX and XIST dfs
+# Add col indicating sex to median X and XIST dfs
 Only_f.df$Sex <- 'Female'
 Only_m.df$Sex <- 'Male'
 
@@ -282,7 +281,7 @@ Shared.df <- rbind(f.Shared, m.Shared)
 head(Shared.df); tail(Shared.df)
 
 # ______________________________________________________________________________________________________________________
-#  MeanX Split-violin plots 
+#  Median X Split-violin plots 
 # ______________________________________________________________________________________________________________________
 # ylims
 # Set to 90 TPM to keep yaxis proportional between plots
@@ -324,7 +323,7 @@ ggplot(Sex_Specific.df,
    scale_fill_manual(values=c('blue', 'green')) +
    ylim(c(0,80)) + 
    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-   ggtitle("Violin plot of mean X expression in sex-specific tissues")
+   ggtitle("Violin plot of median X expression in sex-specific tissues")
 ggsave(SEX_SPECIFIC, width=5, height=5)
 
 # ______________________________________________________________________________________________________________________
