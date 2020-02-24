@@ -9,19 +9,22 @@ F.QQ <- "~/XIST/Tissue/Xpressed/Median/Fem_QQ_Plots.pdf"
 M.QQ <- "~/XIST/Tissue/Xpressed/Median/Male_QQ_Plots.pdf"
 F.SCATTER <- "~/XIST/Tissue/Xpressed/Median/Fem_Tissue_Scatter_Plots.pdf"
 M.SCATTER <- "~/XIST/Tissue/Xpressed/Median/Male_Tissue_Scatter_Plots.pdf"
-R2_SCATTER <- "~/XIST/Tissue/Xpressed/Median/R2_Scatter.pdf"
-F.BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Median/Fem_Brain_XIST.pdf"
-M.BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Median/Male_Brain_XIST.pdf"
-F.NOT_BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Median/Fem_NotBrain_XIST.pdf"
-M.NOT_BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Median/Male_NotBrain_XIST.pdf"
-SEX_SPECIFIC <- "~/XIST/Tissue/Xpressed/Median/Sex_Specific_Violin.pdf"
-SHARED_VIOLIN <- "~/XIST/Tissue/Xpressed/Median/Shared_Violin.pdf"
-NOT_BRAIN_VIOLIN <- "~/XIST/Tissue/Xpressed/Median/NotBrain_Violin.pdf"
-BRAIN_VIOLIN <- "~/XIST/Tissue/Xpressed/Median/Brain_Violin.pdf"
-XIST.R2_SCATTER <- "~/XIST/Tissue/Xpressed/Median/R2_XIST_and_MedX_Vs_MedXIST.pdf"
-VENN <- "~/XIST/Tissue/Xpressed/Median/Venn_GeneCategories.pdf"
-R2_VIOLIN <- "~/XIST/Tissue/Xpressed/Median/R2_Violin.pdf"
-BALATON_COR <- "~/XIST/Tissue/Xpressed/Median/Balaton_Scatter.pdf"
+R2_SCATTER <- "~/XIST/Tissue/Xpressed/Median/R2_Scatter.tiff"
+F.BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Median/Fem_Brain_XIST.tiff"
+M.BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Median/Male_Brain_XIST.tiff"
+F.NOT_BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Median/Fem_NotBrain_XIST.tiff"
+M.NOT_BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Median/Male_NotBrain_XIST.tiff"
+SEX_SPECIFIC <- "~/XIST/Tissue/Xpressed/Median/Sex_Specific_Violin.tiff"
+SHARED_VIOLIN <- "~/XIST/Tissue/Xpressed/Median/Shared_Violin.tiff"
+NOT_BRAIN_VIOLIN <- "~/XIST/Tissue/Xpressed/Median/NotBrain_Violin.tiff"
+BRAIN_VIOLIN <- "~/XIST/Tissue/Xpressed/Median/Brain_Violin.tiff"
+XIST.R2_SCATTER <- "~/XIST/Tissue/Xpressed/Median/R2_XIST_and_MedX_Vs_MedXIST.tiff"
+VENN_INCOMPLETE <- "~/XIST/Tissue/Xpressed/Median/Venn_Incomplete.tiff"
+VENN_SILENCED <- "~/XIST/Tissue/Xpressed/Median/Venn_Silenced.tiff"
+VENN_VARIABLE <- "~/XIST/Tissue/Xpressed/Median/Venn_Variable.tiff"
+R2_VIOLIN <- "~/XIST/Tissue/Xpressed/Median/R2_Violin.tiff"
+BALATON_COR <- "~/XIST/Tissue/Xpressed/Median/Balaton_Scatter.tiff"
+INTER_VENN <- "~/XIST/Tissue/Xpressed/Median/Intersection_Venn.tiff"
 
 # Load libraries
 library(readr) 
@@ -164,7 +167,7 @@ ggplot(Bal.df, aes(x=Tissue, y=R2_Value)) +
  ylab('R2 Value') +
  ylim(c(0,1)) +
  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-ggsave(BALATON_COR)
+ggsave(BALATON_COR, device="tiff")
 
 # ______________________________________________________________________________________________________________________
 # Prepare df for plotting R2 scatter plots
@@ -204,7 +207,7 @@ ggplot(Common.df, aes(x=Tissue, y=R2_MedX)) +
  ylab('R2 (MedianX~ XIST)') +
  ylim(c(0,1)) +
  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-ggsave(R2_SCATTER)
+ggsave(R2_SCATTER, device="tiff")
 
 # ______________________________________________________________________________________________________________________
 #  Scatter plot of R^2 of median X and XIST vs XIST
@@ -219,7 +222,7 @@ ggplot(Common.df, aes(x=Median_XIST, y=R2_MedX)) +
   ylab('R2 for XIST and Median X') +
   xlim(0,150) +
   ylim(0,1) 
-ggsave(XIST.R2_SCATTER)
+ggsave(XIST.R2_SCATTER, device="tiff")
 
 # ______________________________________________________________________________________________________________________
 #  Prepare dfs of median X and XIST expression in f + m brain tissues, sex-shared tissues, 
@@ -298,11 +301,11 @@ Split_Violin <- function(DF, TITLE){
 }
 # Split violin plot of brain tissues
 Split_Violin(DF=Brain.df, TITLE="Split violin plot of median X expression in brain tissues")
-ggsave(BRAIN_VIOLIN)
+ggsave(BRAIN_VIOLIN, device="tiff")
 
 # Split violin plot of sex-shared tissues
 Split_Violin(DF=Shared.df, TITLE="Split violin plot of median X expression in sex-shared tissues")
-ggsave(SHARED_VIOLIN)
+ggsave(SHARED_VIOLIN, device="tiff")
 
 # ______________________________________________________________________________________________________________________
 #  Sex-specific Tissues Violin Plot
@@ -324,7 +327,7 @@ ggplot(Sex_Specific.df,
    ylim(c(0,80)) + 
    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
    ggtitle("Violin plot of median X expression in sex-specific tissues")
-ggsave(SEX_SPECIFIC, width=5, height=5)
+ggsave(SEX_SPECIFIC, width=5, height=5, device="tiff")
 
 # ______________________________________________________________________________________________________________________
 #  XIST violin plots 
@@ -350,19 +353,19 @@ XIST_Violin <- function(DF, YLIM, TITLE){
 XIST_Violin(DF=Brain_f.df, 
             YLIM=c(0, ceiling(max(Brain_f.df$XIST))), 
             TITLE="Violin plot of log10 XIST expression across female brain tissues")
-ggsave(F.BRAIN_XIST)
+ggsave(F.BRAIN_XIST, device="tiff")
 XIST_Violin(DF=Not_Brain_f.df, 
             YLIM=c(0, ceiling(max(Not_Brain_f.df$XIST))), 
             TITLE="Violin plot of log10 XIST expression across female tissues")
-ggsave(F.NOT_BRAIN_XIST)
+ggsave(F.NOT_BRAIN_XIST, device="tiff")
 XIST_Violin(DF=Brain_m.df, 
             YLIM=c(0, ceiling(max(Brain_m.df$XIST))), 
             TITLE="Violin plot of XIST expression across male brain tissues")
-ggsave(M.BRAIN_XIST)
+ggsave(M.BRAIN_XIST, device="tiff")
 XIST_Violin(DF=Not_Brain_m.df, 
             YLIM=c(0, ceiling(max(Not_Brain_m.df$XIST))), 
             TITLE="Violin plot of XIST expression across male tissues")
-ggsave(M.NOT_BRAIN_XIST)
+ggsave(M.NOT_BRAIN_XIST, device="tiff")
 
 # ______________________________________________________________________________________________________________________
 #  Violin plot: R2 by gene classification scheme per tissue
@@ -422,17 +425,19 @@ ggsave(R2_VIOLIN, width=5, height=5)
 summary(Gene_Lst)
 
 # Plot
-pdf(VENN, onefile=TRUE)
 ggVennDiagram(Gene_Lst[c('Incomplete_In_Tukiainen', 'Incomplete_In_Balaton')]) +
     scale_fill_gradient(low='blue', high='red') +
     ggtitle('Venn Diagram of Incomplete Genes')
+ggsave(VENN_INCOMPLETE, device="tiff")
 ggVennDiagram(Gene_Lst[c('Variable_In_Tukiainen', 'Variable_In_Balaton')]) +
     scale_fill_gradient(low='blue', high='red') +
     ggtitle('Venn Diagram of Variable Genes')
+ggsave(VENN_VARIABLE, device="tiff")
 ggVennDiagram(Gene_Lst[c('Silenced_In_Tukiainen', 'Silenced_In_Balaton')]) +
     scale_fill_gradient(low='blue', high='red') +
     ggtitle('Venn Diagram of Silenced Genes')
-dev.off()
+ggsave(VENN_SILENCED, device="tiff")
+
 # ______________________________________________________________________________________________________________________
 # Venn diagram; intersection of gene intersections 
 # ______________________________________________________________________________________________________________________
