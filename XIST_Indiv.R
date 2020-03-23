@@ -1,7 +1,10 @@
+#!/usr/bin/env Rscript
+
 # Perform linear regression on the gene count data (version 7).
 # Fit linear models by individual: 
 # Reponse variable: Mean X chromosome expression and various sets of X-linked genes 
 # Predictor variable: XIST
+# Examine only expressed X chr genes
 setwd("~/XIST")
 
 # Constants
@@ -12,10 +15,10 @@ GENCODE <- "gencode.v19.genes.v7.patched_contigs.gff3" # has to be in same dir
 GENE_LST <- "~/XIST/Files/X_Genes_Status.json"
 
 # Results
-TABLE <- "~/XIST/Indiv/Individual_Correlations.csv"
+TABLE <- "~/XIST/Indiv/Xpressed/Mean/Individual_Correlations.csv"
 
 # Data 
-DATA <- "XIST_Indiv_121719.RData"
+DATA <- "~/XIST/Indiv/Xpressed/Mean/XIST_Indiv_012420.RData"
 
 # Load libraries
 library(readr)
@@ -80,6 +83,17 @@ for (i in Individual_IDs){
   Ind_Tissues[[i]] <- Metrics[Metrics$Sample %like% i, ]
 }
 
+# ______________________________________________________________________________________________________________________
+# Remove sample replicates, drop cell lines, sort samples by individual
+# ______________________________________________________________________________________________________________________
+# Function to drop rows that contain a string in a specific column
+# Checked to make sure this works if df contains multiple rows with string (i.e. drops all instances)
+Drop_Row <- function(x){
+  x <- x[!grepl("Cells", x[['Tissue']]),] 
+  return(x)
+}
+Ind_Tissues <- lapply(Ind_Tissues, Drop_Row) 
+
 # Get list of sample replicates
 # i.e. people who have multiple samples for the same tissue type
 Dup_Ind_Tissues <- lapply(Ind_Tissues, function(x) {
@@ -87,9 +101,6 @@ Dup_Ind_Tissues <- lapply(Ind_Tissues, function(x) {
 })
 names(Dup_Ind_Tissues) <- names(Ind_Tissues)
 
-# ______________________________________________________________________________________________________________________
-# X chromosome counts
-# ______________________________________________________________________________________________________________________
 # For each individual, make a data frame of gene counts from samples that come from the same person and store in list.
 Gene_Cts <- data.frame(Gene_Cts, stringsAsFactors = F) # was both data.table and data frame
 colnames(Gene_Cts) <- str_replace_all(colnames(Gene_Cts), pattern = "\\.", replacement = "-")
@@ -113,7 +124,7 @@ names(Ind_Counts) <- Individual_IDs
 # i.e. > 5 cols including 'gene_id' and 'gene_name'
 length(Ind_Counts) == length(Filter(function(x) dim(x)[2] > 5, Ind_Counts)) # FALSE
 
-# Remove individuals who have at least 3 samples
+# Remove individuals who do not have at least 3 samples
 Ind_Counts <- Ind_Counts[sapply(Ind_Counts, function(x) dim(x)[2]) > 5]
 
 # Check for any empty data frames
@@ -132,6 +143,9 @@ Ind_Counts <- lapply(Ind_Counts, function(x){
   x[, !(names(x) %in% Sample_Replicates)]
 })
 
+# ______________________________________________________________________________________________________________________
+# Subset X chr genes
+# ______________________________________________________________________________________________________________________
 # Get subset of just X chm genes from each data frame in list
 # Will not include XIST
 Ind_XCounts <- lapply(Ind_Counts, function(x) {
@@ -140,6 +154,15 @@ Ind_XCounts <- lapply(Ind_Counts, function(x) {
 
 # Check for missing values
 any(sapply(Ind_XCounts, function(x) sum(is.na(x)))) # FALSE
+
+# Function to filter list of count dfs by tpm value
+Filter_Cts <- function(DF, TPM){
+  DF <- DF[apply(DF[,3:ncol(DF)], MARGIN=1, function(x) all(x>TPM)),]
+  return(DF)
+}
+
+# Keep genes with TPM > 0; counts are seperated by sex
+Ind_XCounts <- Map(Filter_Cts, DF=Ind_XCounts, TPM=0)
 
 # Get the mean values of the X chm genes
 Mean_Ind_XCounts <- lapply(Ind_XCounts, function(x){
@@ -152,8 +175,7 @@ XIST_Ind_Counts <- lapply(Ind_Counts, function(x) {
 })
 
 # ______________________________________________________________________________________________________________________
-# Table 1; Column 1:
-# Correlate expression from XIST with X chromosome expression within a person across all of their tissues.
+# Sanity Check
 # ______________________________________________________________________________________________________________________
 # Check that all the samples are present in both lists of dfs
 length(XIST_Ind_Counts) == length(Mean_Ind_XCounts) # TRUE
@@ -167,6 +189,10 @@ all(names(XIST_Ind_Counts) == names(Mean_Ind_XCounts)) # TRUE
 # Are they listed in the same order?
 identical(names(XIST_Ind_Counts), names(Mean_Ind_XCounts)) # TRUE
 
+# ______________________________________________________________________________________________________________________
+# Table 1; Column 1:
+# Correlate expression from XIST with X chromosome expression within a person across all of their tissues.
+# ______________________________________________________________________________________________________________________
 # Function to combine vectors into df
 Combine_Vectors <- function(a, b){
   data.frame(a, b)
@@ -217,10 +243,10 @@ Regression <- as.data.frame(do.call(rbind, Res.MeanX_XIST))
 # Label columns
 colnames(Regression) <- c("pval_MeanX", "R2_MeanX")
 
-# Add column with sex
 # Get list of female IDs
 Female_IDs <- Phenotypes$SUBJID[which(Phenotypes$SEX==2)]
 
+# Add column with sex
 Sample_Sex <- sapply(rownames(Regression), function(x) {
   if (x %in% Female_IDs > 0) {"Female"}
   else {"Male"}
@@ -545,9 +571,11 @@ All_Eval <- Map(Filter_Func,
 Not_Eval <- Map(Filter_Func,
                 x=Ind_XCounts, 
                 y='Not_Evaluated_In_Either')
+################ ISSUE ############################################ ISSUE ############################
 Immune_Not_Eval <- Map(Filter_Func, 
                        x=Ind_XCounts, 
                        y='Immune_Genes_Not_Evaluated')
+################ ISSUE ############################################ ISSUE ############################
 PAR_Bal <-  Map(Filter_Func, 
                 x=Ind_XCounts, 
                 y='PAR_In_Balaton')
@@ -600,6 +628,9 @@ lm.All_Eval <- lapply(All_Eval.Mean_Vs_XIST, Linear_Model.5)
 lm.Not_Eval <- lapply(Not_Eval.Mean_Vs_XIST, Linear_Model.5)
 lm.Immune_Not_Eval <- lapply(Immune_Not_Eval.Mean_Vs_XIST, Linear_Model.5)
 lm.PAR <- lapply(PAR.Mean_Vs_XIST, Linear_Model.5)
+
+# Find where NaNs are appearing
+which(as.logical(lapply(Immune_Not_Eval.Mean_Vs_XIST, function(x) any(is.na(x)))))
 
 # Apply function to list of dfs
 Res.All_Eval <- lapply(lm.All_Eval, Regression_Res)
