@@ -291,6 +291,16 @@ m.MedX_Vs_XIST <- Map(Rename_Col,
                        a='MedX', 
                        b='XIST')
 
+# Filter outliers: Function to add col with XIST Z-score for each sample;
+# then keep only samples with Z-score between 3 and -3
+ZScore <- function(x){
+    x[['ZScore']] <- scale(x[['XIST']])
+    x <- x[x[['ZScore']] < 3 & x[['ZScore']] > -3,]
+    return(x)
+}
+f.MedX_Vs_XIST <- lapply(f.MedX_Vs_XIST, ZScore)
+m.MedX_Vs_XIST <- lapply(m.MedX_Vs_XIST, ZScore)
+
 # Apply lm to each df in list
 Linear_Model.1 <- function(x) {
   z <- lm(MedX ~ XIST, data = x)
@@ -456,6 +466,19 @@ m.Immune_Silenced_Median_Vs_XIST <- Map(Rename_Col,
                                       x=m.Immune_Silenced_Median_Vs_XIST, 
                                       a='Median_Silenced', 
                                       b='XIST')
+
+# Filter outliers; samples with Z-score > 3 or < -3
+f.Silenced_Median_Vs_XIST <- lapply(f.Silenced_Median_Vs_XIST, ZScore)
+f.Tuk_Silenced_Median_Vs_XIST <- lapply(f.Tuk_Silenced_Median_Vs_XIST, ZScore)
+f.Bal_Silenced_Median_Vs_XIST <- lapply(f.Bal_Silenced_Median_Vs_XIST, ZScore)
+f.One_Silenced_Median_Vs_XIST <- lapply(f.One_Silenced_Median_Vs_XIST, ZScore)
+f.Immune_Silenced_Median_Vs_XIST <- lapply(f.Immune_Silenced_Median_Vs_XIST, ZScore)
+ 
+m.Silenced_Median_Vs_XIST <- lapply(m.Silenced_Median_Vs_XIST, ZScore)
+m.Tuk_Silenced_Median_Vs_XIST <- lapply(m.Tuk_Silenced_Median_Vs_XIST, ZScore)
+m.Bal_Silenced_Median_Vs_XIST <- lapply(m.Bal_Silenced_Median_Vs_XIST, ZScore)
+m.One_Silenced_Median_Vs_XIST <- lapply(m.One_Silenced_Median_Vs_XIST, ZScore)
+m.Immune_Silenced_Median_Vs_XIST <- lapply(m.Immune_Silenced_Median_Vs_XIST, ZScore)
 
 # Apply lm to each df in list
 Linear_Model.2 <- function(x) {
@@ -636,6 +659,17 @@ m.Immune_Median_Variable_Vs_XIST <- Map(Rename_Col,
                                       a='Median_Variable', 
                                       b='XIST')
 
+# Filter outliers; samples with Z-score > 3 or < -3
+f.One_Median_Variable_Vs_XIST <- lapply(f.One_Median_Variable_Vs_XIST, ZScore)
+f.Tuk_Median_Variable_Vs_XIST <- lapply(f.Tuk_Median_Variable_Vs_XIST, ZScore)
+f.Bal_Median_Variable_Vs_XIST <- lapply(f.Bal_Median_Variable_Vs_XIST, ZScore)
+f.Immune_Median_Variable_Vs_XIST <- lapply(f.Immune_Median_Variable_Vs_XIST, ZScore)
+ 
+m.One_Median_Variable_Vs_XIST <- lapply(m.One_Median_Variable_Vs_XIST, ZScore)
+m.Tuk_Median_Variable_Vs_XIST <- lapply(m.Tuk_Median_Variable_Vs_XIST, ZScore)
+m.Bal_Median_Variable_Vs_XIST <- lapply(m.Bal_Median_Variable_Vs_XIST, ZScore)
+m.Immune_Median_Variable_Vs_XIST <- lapply(m.Immune_Median_Variable_Vs_XIST, ZScore)
+
 # Apply lm to each df in list
 Linear_Model.3 <- function(x) {
   z <- lm(Median_Variable ~ XIST, data = x)
@@ -795,6 +829,17 @@ m.Immune_Median_Incomplete_Vs_XIST <- Map(Rename_Col,
                                         a='Median_Incomplete', 
                                         b='XIST') 
 
+# Filter outliers; samples with Z-score > 3 or < -3
+f.One_Median_Incomplete_Vs_XIST <- lapply(f.One_Median_Incomplete_Vs_XIST, ZScore)
+f.Tuk_Median_Incomplete_Vs_XIST <- lapply(f.Tuk_Median_Incomplete_Vs_XIST, ZScore)
+f.Bal_Median_Incomplete_Vs_XIST <- lapply(f.Bal_Median_Incomplete_Vs_XIST, ZScore)
+f.Immune_Median_Incomplete_Vs_XIST <- lapply(f.Immune_Median_Incomplete_Vs_XIST, ZScore)
+ 
+m.One_Median_Incomplete_Vs_XIST <- lapply(m.One_Median_Incomplete_Vs_XIST, ZScore)
+m.Tuk_Median_Incomplete_Vs_XIST <- lapply(m.Tuk_Median_Incomplete_Vs_XIST, ZScore)
+m.Bal_Median_Incomplete_Vs_XIST <- lapply(m.Bal_Median_Incomplete_Vs_XIST, ZScore)
+m.Immune_Median_Incomplete_Vs_XIST <- lapply(m.Immune_Median_Incomplete_Vs_XIST, ZScore)
+
 # Apply lm to each df in list
 Linear_Model.4 <- function(x) {
   z <- lm(Median_Incomplete ~ XIST, data = x)
@@ -952,6 +997,17 @@ m.PAR_Median_Vs_XIST <- Map(Rename_Col,
                           a='Misc', 
                           b='XIST') 
 
+# Filter outliers; samples with Z-score > 3 or < -3
+f.All_Eval_Median_Vs_XIST <- lapply(f.All_Eval_Median_Vs_XIST, ZScore)
+f.Not_Eval_Median_Vs_XIST <- lapply(f.Not_Eval_Median_Vs_XIST, ZScore)
+f.Immune_Not_Eval_Median_Vs_XIST <- lapply(f.Immune_Not_Eval_Median_Vs_XIST, ZScore)
+f.PAR_Median_Vs_XIST <- lapply(f.PAR_Median_Vs_XIST, ZScore)
+
+m.All_Eval_Median_Vs_XIST <- lapply(m.All_Eval_Median_Vs_XIST, ZScore)
+m.Not_Eval_Median_Vs_XIST <- lapply(m.Not_Eval_Median_Vs_XIST, ZScore)
+m.Immune_Not_Eval_Median_Vs_XIST <- lapply(m.Immune_Not_Eval_Median_Vs_XIST, ZScore)
+m.PAR_Median_Vs_XIST <- lapply(m.PAR_Median_Vs_XIST, ZScore)
+
 # Apply lm to each df in list
 Linear_Model.5 <- function(x) {
   z <- lm(Misc ~ XIST, data = x)
@@ -1040,8 +1096,9 @@ f.Regression <- cbind(Tissue=names(f.Tissue_Lst), f.Regression)
 m.Regression <- cbind(Tissue=names(m.Tissue_Lst), m.Regression) 
 
 # Sort by number of tissues
-f.Regression <- f.Regression[order(f.Regression$Num_Tissues, decreasing=TRUE),]
-m.Regression <- m.Regression[order(m.Regression$Num_Tissues, decreasing=TRUE),]
+# This is just for reporting results; use the unsorted df for plotting
+#f.Regression <- f.Regression[order(f.Regression$Num_Tissues, decreasing=TRUE),]
+#m.Regression <- m.Regression[order(m.Regression$Num_Tissues, decreasing=TRUE),]
 
 # Write to file
 write.csv(f.Regression, LM_FEM, row.names=FALSE)
