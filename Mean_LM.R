@@ -206,13 +206,27 @@ m.Tissue_XCounts <- Map(Filter_Cts, DF=m.Tissue_XCounts, TPM=0)
 any(sapply(f.Tissue_XCounts, function(x) sum(is.na(x)))) # FALSE
 any(sapply(m.Tissue_XCounts, function(x) sum(is.na(x)))) # FALSE
 
-# Get the mean values of expressed X chm genes
+# Funtion to get the mean values of expressed X chm genes
 Mean_Val <- function(x){
   res <- colMeans(x[sapply(x, is.numeric)]) 
   return(res)
 }
-f.MeanX_Tissue_Counts <- lapply(f.Tissue_XCounts, Mean_Val)
-m.MeanX_Tissue_Counts <- lapply(m.Tissue_XCounts, Mean_Val)
+
+# Function to get the median values of expressed X chm genes
+Median_Val <- function(x){
+  res <- apply(x[,-c(1:2)], 2, median) 
+  return(res)
+}
+
+# Add mean or median as command line argument
+operation = args[1]
+if (operation == 'mean'){
+    f.Central <- lapply(f.Tissue_XCounts, Mean_Val)
+    m.Central <- lapply(m.Tissue_XCounts, Mean_Val)
+} else if (operation == 'median'){
+    f.Central <- lapply(f.Tissue_XCounts, Median_Val)
+    m.Central <- lapply(m.Tissue_XCounts, Median_Val)
+}
 
 # Get XIST values from each data frame
 Get_XIST <- function(x){
@@ -237,20 +251,20 @@ m.XIST_Tissue_Counts <- lapply(m.Tissue_Counts, Get_XIST)
 # Sanity check
 # ______________________________________________________________________________________________________________________
 # Check that all the samples are present in both lists of dfs
-length(f.XIST_Tissue_Counts) == length(f.MeanX_Tissue_Counts) # TRUE
-length(m.XIST_Tissue_Counts) == length(m.MeanX_Tissue_Counts) # TRUE
+length(f.XIST_Tissue_Counts) == length(f.Central) # TRUE
+length(m.XIST_Tissue_Counts) == length(m.Central) # TRUE
 
 # How many tissue types are there per sex?
 length(f.XIST_Tissue_Counts) # 51
 length(m.XIST_Tissue_Counts) # 47
 
 # Are all the same individuals listed in both lists?
-all(names(f.XIST_Tissue_Counts) == names(f.MeanX_Tissue_Counts)) # TRUE
-all(names(m.XIST_Tissue_Counts) == names(m.MeanX_Tissue_Counts)) # TRUE
+all(names(f.XIST_Tissue_Counts) == names(f.Central)) # TRUE
+all(names(m.XIST_Tissue_Counts) == names(m.Central)) # TRUE
 
 # Are they listed in the same order?
-identical(names(f.XIST_Tissue_Counts), names(f.MeanX_Tissue_Counts)) # TRUE
-identical(names(m.XIST_Tissue_Counts), names(m.MeanX_Tissue_Counts)) # TRUE
+identical(names(f.XIST_Tissue_Counts), names(f.Central)) # TRUE
+identical(names(m.XIST_Tissue_Counts), names(m.Central)) # TRUE
 
 # ______________________________________________________________________________________________________________________
 # Table 1; Column 1:2
@@ -271,10 +285,10 @@ Combine_Lsts <- function(x, y, z){
   return(x)
 }
 f.MeanX_Vs_XIST <- Combine_Lsts(x='f.MeanX_Vs_XIST', 
-                                y=f.MeanX_Tissue_Counts, 
+                                y=f.Central, 
                                 z=f.XIST_Tissue_Counts)
 m.MeanX_Vs_XIST <- Combine_Lsts(x='m.MeanX_Vs_XIST', 
-                                y=m.MeanX_Tissue_Counts, 
+                                y=m.Central, 
                                 z=m.XIST_Tissue_Counts)
 
 # Rename col names in each df
@@ -993,6 +1007,7 @@ m.PAR_Mean_Vs_XIST <- Map(Rename_Col,
                           x=m.PAR_Mean_Vs_XIST, 
                           a='Misc', 
                           b='XIST') 
+
 # Filter outliers; samples with Z-score > 3 or < -3
 f.All_Eval_Mean_Vs_XIST <- lapply(f.All_Eval_Mean_Vs_XIST, ZScore)
 f.Not_Eval_Mean_Vs_XIST <- lapply(f.Not_Eval_Mean_Vs_XIST, ZScore)
