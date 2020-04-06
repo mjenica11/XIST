@@ -7,6 +7,12 @@
 # Inlude expressed genes on the X chromosome only 
 setwd("~/XIST/")
 
+# Command line arguments:
+# args[1]: 'mean' or 'median'
+# arge[2]: gene of interest as response variable (i.e. 'XIST' or 'DDX3X')
+args = commandArgs(trailingOnly=TRUE)
+operation = args[1]
+
 # Constants
 COUNTS <- "~/XIST/Files/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_tpm.gct" # TPM normalized
 METRICS <- "~/XIST/Files/GTEx_Data_20160115_v7_RNAseq_RNASeQCv1.1.8_metrics.tsv"
@@ -15,11 +21,15 @@ GENCODE <- "gencode.v19.genes.v7.patched_contigs.gff3"
 GENE_LST <- "~/XIST/Files/X_Genes_Status.json"
 
 # Results
-LM_FEM <- "~/XIST/Tissue/Xpressed/Mean/Female_Tissue_Correlations.csv"
-LM_MALE <- "~/XIST/Tissue/Xpressed/Mean/Male_Tissue_Correlations.csv"
-
+if (operation == 'mean'){
+    LM_FEM <- "~/XIST/Tissue/Xpressed/Command/Mean_XIST_Female_Results.csv"
+    LM_MALE <- "~/XIST/Tissue/Xpressed/Command/Mean_XIST_Male_Results.csv"
+} else if (operation == 'median'){
+    LM_FEM <- "~/XIST/Tissue/Xpressed/Command/Median_XIST_Female_Results.csv"
+    LM_MALE <- "~/XIST/Tissue/Xpressed/Command/Median_XIST_Male_Results.csv"
+}
 # Session data 
-DATA <- "~/XIST/Tissue/Xpressed/Mean/Xpressed_032320.RData"
+DATA <- "~/XIST/Tissue/Xpressed/Command/Command_040620.RData"
 
 # Load libraries
 library(readr) 
@@ -219,7 +229,6 @@ Median_Val <- function(x){
 }
 
 # Add mean or median as command line argument
-operation = args[1]
 if (operation == 'mean'){
     f.Central <- lapply(f.Tissue_XCounts, Mean_Val)
     m.Central <- lapply(m.Tissue_XCounts, Mean_Val)
@@ -1075,8 +1084,14 @@ m.Regression$R2_PAR <- lapply(m.Res_PAR, Return_R2)
 #  Write table 1 and summary tables; Columns 37:39
 # ______________________________________________________________________________________________________________________
 # Add col with mean(XIST) and sd(XIST)
-f.Regression$Mean_XIST <- lapply(f.XIST_Tissue_Counts, mean)
-m.Regression$Mean_XIST <- lapply(m.XIST_Tissue_Counts, mean)
+# Column name changes depending on command line argument supplied
+if (operation == 'mean'){
+    f.Regression$Mean_XIST <- lapply(f.XIST_Tissue_Counts, mean)
+    m.Regression$Mean_XIST <- lapply(m.XIST_Tissue_Counts, mean)
+} else if (operation == 'median'){
+    f.Regression$Median_XIST <- lapply(f.XIST_Tissue_Counts, median)
+    m.Regression$Median_XIST <- lapply(m.XIST_Tissue_Counts, median)
+}
 
 f.Regression$sd_XIST <- lapply(f.XIST_Tissue_Counts, sd)
 m.Regression$sd_XIST <- lapply(m.XIST_Tissue_Counts, sd)
