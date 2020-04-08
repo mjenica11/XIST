@@ -291,6 +291,10 @@ m.MeanX_Vs_XIST <- Map(Rename_Col,
                        a='MeanX', 
                        b='XIST')
 
+# Print number of rows per df before filtering
+as.numeric(lapply(f.MeanX_Vs_XIST, nrow))
+as.numeric(lapply(m.MeanX_Vs_XIST, nrow))
+
 # Filter outliers: Function to add col with XIST Z-score for each sample;
 # then keep only samples with Z-score between 3 and -3
 ZScore <- function(x){
@@ -300,6 +304,10 @@ ZScore <- function(x){
 }
 f.MeanX_Vs_XIST <- lapply(f.MeanX_Vs_XIST, ZScore)
 m.MeanX_Vs_XIST <- lapply(m.MeanX_Vs_XIST, ZScore)
+
+# Print number of rows per df filtering
+as.numeric(lapply(f.MeanX_Vs_XIST, nrow))
+as.numeric(lapply(m.MeanX_Vs_XIST, nrow))
 
 # Apply lm to each df in list
 Linear_Model.1 <- function(x) {
@@ -1066,22 +1074,12 @@ m.Regression$Mean_XIST <- lapply(m.XIST_Tissue_Counts, mean)
 f.Regression$sd_XIST <- lapply(f.XIST_Tissue_Counts, sd)
 m.Regression$sd_XIST <- lapply(m.XIST_Tissue_Counts, sd)
 
-# Add column with number of tissues
-Count_Rows <- function(x){
-  res <- nrow(x)
-  return(res)
-}
-
-Num_Fem <- as.character(lapply(f.Tissue_Lst, Count_Rows))
-Num_Male <- as.character(lapply(m.Tissue_Lst, Count_Rows))
-
 # Add column with number of samples per tissue
+Num_Fem <- as.numeric(lapply(f.MeanX_Vs_XIST, nrow))
+Num_Male <- as.numeric(lapply(m.MeanX_Vs_XIST, nrow))
+
 f.Regression <- cbind(Num_Tissues=Num_Fem, f.Regression) 
 m.Regression <- cbind(Num_Tissues=Num_Male, m.Regression)
-
-# Convert Num_Tissues from factor to numeric
-f.Regression$Num_Tissues <- as.numeric(as.character(f.Regression$Num_Tissues))
-m.Regression$Num_Tissues <- as.numeric(as.character(m.Regression$Num_Tissues))
 
 # Convert rest of cols from list to numeric
 f.Regression[,4:ncol(f.Regression)] <- lapply(f.Regression[,4:ncol(f.Regression)], function(x) unlist(x))
