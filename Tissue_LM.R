@@ -11,11 +11,11 @@ setwd("~/XIST/")
 # args[1]: 'mean' or 'median'
 # arge[2]: gene of interest as response variable (i.e. 'XIST', 'DDX3X', or 'AR')
 args = commandArgs(trailingOnly=TRUE)
-operation = args[1]
-operation.2 = args[2]
+#operation = args[1]
+#operation.2 = args[2]
 
-#operation = 'mean' 
-#operation.2 = 'XIST'
+operation = 'mean' 
+operation.2 = 'XIST'
 
 # Constants
 COUNTS <- "~/XIST/Files/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_tpm.gct" # TPM normalized
@@ -1160,6 +1160,7 @@ if (operation == 'mean'){
 
     f.Regression$sd_Predictor <- lapply(f.Gene_Tissue_Counts, sd)
     m.Regression$sd_Predictor <- lapply(m.Gene_Tissue_Counts, sd)
+}
 
 # Add column with number of tissues
 Count_Rows <- function(x){
