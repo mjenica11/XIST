@@ -1163,21 +1163,11 @@ if (operation == 'mean'){
 }
 
 # Add column with number of tissues
-Count_Rows <- function(x){
-  res <- nrow(x)
-  return(res)
-}
+Num_Fem <- as.numeric(lapply(f.CentralX_Vs_Gene, nrow))
+Num_Male <- as.numeric(lapply(m.CentralX_Vs_Gene, nrow))
 
-Num_Fem <- as.character(lapply(f.Tissue_Lst, Count_Rows))
-Num_Male <- as.character(lapply(m.Tissue_Lst, Count_Rows))
-
-# Add column with number of samples per tissue
 f.Regression <- cbind(Num_Tissues=Num_Fem, f.Regression) 
 m.Regression <- cbind(Num_Tissues=Num_Male, m.Regression)
-
-# Convert Num_Tissues from factor to numeric
-f.Regression$Num_Tissues <- as.numeric(as.character(f.Regression$Num_Tissues))
-m.Regression$Num_Tissues <- as.numeric(as.character(m.Regression$Num_Tissues))
 
 # Convert rest of cols from list to numeric
 f.Regression[,4:ncol(f.Regression)] <- lapply(f.Regression[,4:ncol(f.Regression)], function(x) unlist(x))
