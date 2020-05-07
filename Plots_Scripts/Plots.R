@@ -3,165 +3,150 @@
 # Plots related to tissue linear model results
 setwd("~/XIST/")
 
-# Needs to be caps...
-#operation <- 'Mean'
-#operation.2 <- 'XIST'
-#
-#DATA <- "~/XIST/Tissue/Xpressed/Command/Mean_XIST.RData"
-#F.QQ <- "~/XIST/Tissue/Xpressed/Command/Fem_QQ_Plots.pdf"
-#M.QQ <- "~/XIST/Tissue/Xpressed/Command/Male_QQ_Plots.pdf"
-#F.SCATTER <- "~/XIST/Tissue/Xpressed/Command/Fem_Tissue_Scatter_Plots.pdf"
-#M.SCATTER <- "~/XIST/Tissue/Xpressed/Command/Male_Tissue_Scatter_Plots.pdf"
-#R2_SCATTER <- "~/XIST/Tissue/Xpressed/Command/R2_Scatter.tiff"
-#F.BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Command/Fem_Brain_XIST.tiff"
-#M.BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Command/Male_Brain_XIST.tiff"
-#F.NOT_BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Command/Fem_NotBrain_XIST.tiff"
-#M.NOT_BRAIN_XIST <- "~/XIST/Tissue/Xpressed/Command/Male_NotBrain_XIST.tiff"
-#SEX_SPECIFIC <- "~/XIST/Tissue/Xpressed/Command/Sex_Specific_Violin.tiff"
-#SHARED_VIOLIN <- "~/XIST/Tissue/Xpressed/Command/Shared_Violin.tiff"
-#BRAIN_VIOLIN <- "~/XIST/Tissue/Xpressed/Command/Brain_Violin.tiff"
-#XIST.R2_SCATTER <- "~/XIST/Tissue/Xpressed/Command/R2_vs_CentralXIST.tiff"
-#VENN.INCOMPLETE <- "~/XIST/Tissue/Xpressed/Command/Venn_Incomplete.tiff"
-#VENN.SILENCED <- "~/XIST/Tissue/Xpressed/Command/Venn_Silenced.tiff"
-#VENN.VARIABLE <- "~/XIST/Tissue/Xpressed/Command/Venn_Variable.tiff"
-#INTER_VENN <- "~/XIST/Tissue/Xpressed/Command/Intersect_Venn.tiff"
-#R2_VIOLIN <- "~/XIST/Tissue/Xpressed/Command/R2_Violin.tiff"
-#BALATON_COR <- "~/XIST/Tissue/Xpressed/Command/Balaton_Scatter.tiff"
-
 # Command line arguments:
-# args[1]: 'mean' or 'median'
+# args[1]: 'Mean' or 'Median'
 # arge[2]: gene of interest as response variable (i.e. 'XIST', 'DDX3X', or 'AR')
 args = commandArgs(trailingOnly=TRUE)
 operation = args[1]
 operation.2 = args[2]
 
+#operation = 'Mean'
+#operation.2 = 'XIST'
+
 # Constants
-if (operation == 'mean' & operation.2 == 'XIST'){
-    DATA <- "~/XIST/Tissue/Command/Mean/XIST/Mean_XIST.RData"
-    F.QQ <- "~/XIST/Tissue/Command/Mean/XIST/Fem_QQ_Plots.pdf"
-    M.QQ <- "~/XIST/Tissue/Command/Mean/XIST/Male_QQ_Plots.pdf"
-    F.SCATTER <- "~/XIST/Tissue/Command/Mean/XIST/Fem_Tissue_Scatter_Plots.pdf"
-    M.SCATTER <- "~/XIST/Tissue/Command/Mean/XIST/Male_Tissue_Scatter_Plots.pdf"
-    R2_SCATTER <- "~/XIST/Tissue/Command/Mean/XIST/R2_Scatter.tiff"
-    F.BRAIN_XIST <- "~/XIST/Tissue/Command/Mean/XIST/Fem_Brain_XIST.tiff"
-    M.BRAIN_XIST <- "~/XIST/Tissue/Command/Mean/XIST/Male_Brain_XIST.tiff"
-    F.NOT_BRAIN_XIST <- "~/XIST/Tissue/Command/Mean/XIST/Fem_NotBrain_XIST.tiff"
-    M.NOT_BRAIN_XIST <- "~/XIST/Tissue/Command/Mean/XIST/Male_NotBrain_XIST.tiff"
-    SEX_SPECIFIC <- "~/XIST/Tissue/Command/Mean/XIST/Sex_Specific_Violin.tiff"
-    SHARED_VIOLIN <- "~/XIST/Tissue/Command/Mean/XIST/Shared_Violin.tiff"
-    BRAIN_VIOLIN <- "~/XIST/Tissue/Command/Mean/XIST/Brain_Violin.tiff"
-    XIST.R2_SCATTER <- "~/XIST/Tissue/Command/Mean/XIST/R2_vs_CentralXIST.tiff"
-    VENN.INCOMPLETE <- "~/XIST/Tissue/Command/Mean/XIST/Venn_Incomplete.tiff"
-    VENN.SILENCED <- "~/XIST/Tissue/Command/Mean/XIST/Venn_Silenced.tiff"
-    VENN.VARIABLE <- "~/XIST/Tissue/Command/Mean/XIST/Venn_Variable.tiff"
-    INTER_VENN <- "~/XIST/Tissue/Command/Mean/XIST/Intersect_Venn.tiff"
-    R2_VIOLIN <- "~/XIST/Tissue/Command/Mean/XIST/R2_Violin.tiff"
-    BALATON_COR <- "~/XIST/Tissue/Command/Mean/XIST/Balaton_Scatter.tiff"
-} else if (operation == 'median' & operation.2 == 'XIST'){
-    DATA <- "~/XIST/Tissue/Command/Median/XIST/Command_040620.RData"
-    F.QQ <- "~/XIST/Tissue/Command/Median/XIST/Fem_QQ_Plots.pdf"
-    M.QQ <- "~/XIST/Tissue/Command/Median/XIST/Male_QQ_Plots.pdf"
-    F.SCATTER <- "~/XIST/Tissue/Command/Median/XIST/Fem_Tissue_Scatter_Plots.pdf"
-    M.SCATTER <- "~/XIST/Tissue/Command/Median/XIST/Male_Tissue_Scatter_Plots.pdf"
-    R2_SCATTER <- "~/XIST/Tissue/Command/Median/XIST/R2_Scatter.tiff"
-    F.BRAIN_XIST <- "~/XIST/Tissue/Command/Median/XIST/Fem_Brain_XIST.tiff"
-    M.BRAIN_XIST <- "~/XIST/Tissue/Command/Median/XIST/Male_Brain_XIST.tiff"
-    F.NOT_BRAIN_XIST <- "~/XIST/Tissue/Command/Median/XIST/Fem_NotBrain_XIST.tiff"
-    M.NOT_BRAIN_XIST <- "~/XIST/Tissue/Command/Median/XIST/Male_NotBrain_XIST.tiff"
-    SEX_SPECIFIC <- "~/XIST/Tissue/Command/Median/XIST/Sex_Specific_Violin.tiff"
-    SHARED_VIOLIN <- "~/XIST/Tissue/Command/Median/XIST/Shared_Violin.tiff"
-    BRAIN_VIOLIN <- "~/XIST/Tissue/Command/Median/XIST/Brain_Violin.tiff"
-    XIST.R2_SCATTER <- "~/XIST/Tissue/Command/Median/XIST/R2_vs_MedianXIST.tiff"
-    VENN.INCOMPLETE <- "~/XIST/Tissue/Command/Median/XIST/Venn_Incomplete.tiff"
-    VENN.SILENCED <- "~/XIST/Tissue/Command/Median/XIST/Venn_Silenced.tiff"
-    VENN.VARIABLE <- "~/XIST/Tissue/Command/Median/XIST/Venn_Variable.tiff"
-    INTER_VENN <- "~/XIST/Tissue/Command/Median/XIST/Intersect_Venn.tiff"
-    R2_VIOLIN <- "~/XIST/Tissue/Command/Median/XIST/R2_Violin.tiff"
-    BALATON_COR <- "~/XIST/Tissue/Command/Median/XIST/Balaton_Scatter.tiff"
-if (operation == 'mean' & operation.2 == 'DDX3X'){
-    DATA <- "~/XIST/Tissue/Command/Mean/DDX3X/Command_040620.RData"
-    F.QQ <- "~/XIST/Tissue/Command/Mean/DDX3X/Fem_QQ_Plots.pdf"
-    M.QQ <- "~/XIST/Tissue/Command/Mean/DDX3X/Male_QQ_Plots.pdf"
-    F.SCATTER <- "~/XIST/Tissue/Command/Mean/DDX3X/Fem_Tissue_Scatter_Plots.pdf"
-    M.SCATTER <- "~/XIST/Tissue/Command/Mean/DDX3X/Male_Tissue_Scatter_Plots.pdf"
-    R2_SCATTER <- "~/XIST/Tissue/Command/Mean/DDX3X/R2_Scatter.tiff"
-    F.BRAIN_XIST <- "~/XIST/Tissue/Command/Mean/DDX3X/Fem_Brain_XIST.tiff"
-    M.BRAIN_XIST <- "~/XIST/Tissue/Command/Mean/DDX3X/Male_Brain_XIST.tiff"
-    F.NOT_BRAIN_XIST <- "~/XIST/Tissue/Command/Mean/DDX3X/Fem_NotBrain_XIST.tiff"
-    M.NOT_BRAIN_XIST <- "~/XIST/Tissue/Command/Mean/DDX3X/Male_NotBrain_XIST.tiff"
-    SEX_SPECIFIC <- "~/XIST/Tissue/Command/Mean/DDX3X/Sex_Specific_Violin.tiff"
-    SHARED_VIOLIN <- "~/XIST/Tissue/Command/Mean/DDX3X/Shared_Violin.tiff"
-    BRAIN_VIOLIN <- "~/XIST/Tissue/Command/Mean/DDX3X/Brain_Violin.tiff"
-    XIST.R2_SCATTER <- "~/XIST/Tissue/Command/Mean/DDX3X/R2_vs_CentralXIST.tiff"
-    VENN.INCOMPLETE <- "~/XIST/Tissue/Command/Mean/DDX3X/Venn_Incomplete.tiff"
-    VENN.SILENCED <- "~/XIST/Tissue/Command/Mean/DDX3X/Venn_Silenced.tiff"
-    VENN.VARIABLE <- "~/XIST/Tissue/Command/Mean/DDX3X/Venn_Variable.tiff"
-    INTER_VENN <- "~/XIST/Tissue/Command/Mean/DDX3X/Intersect_Venn.tiff"
-    R2_VIOLIN <- "~/XIST/Tissue/Command/Mean/DDX3X/R2_Violin.tiff"
-    BALATON_COR <- "~/XIST/Tissue/Command/Mean/DDX3X/Balaton_Scatter.tiff"
-} else if (operation == 'median' & operation.2 == 'DDX3X'){
-    DATA <- "~/XIST/Tissue/Command/Median/DDX3X/Command_040620.RData"
-    F.QQ <- "~/XIST/Tissue/Command/Median/DDX3X/Fem_QQ_Plots.pdf"
-    M.QQ <- "~/XIST/Tissue/Command/Median/DDX3X/Male_QQ_Plots.pdf"
-    F.SCATTER <- "~/XIST/Tissue/Command/Median/DDX3X/Fem_Tissue_Scatter_Plots.pdf"
-    M.SCATTER <- "~/XIST/Tissue/Command/Median/DDX3X/Male_Tissue_Scatter_Plots.pdf"
-    R2_SCATTER <- "~/XIST/Tissue/Command/Median/DDX3X/R2_Scatter.tiff"
-    F.BRAIN_XIST <- "~/XIST/Tissue/Command/Median/DDX3X/Fem_Brain_XIST.tiff"
-    M.BRAIN_XIST <- "~/XIST/Tissue/Command/Median/DDX3X/Male_Brain_XIST.tiff"
-    F.NOT_BRAIN_XIST <- "~/XIST/Tissue/Command/Median/DDX3X/Fem_NotBrain_XIST.tiff"
-    M.NOT_BRAIN_XIST <- "~/XIST/Tissue/Command/Median/DDX3X/Male_NotBrain_XIST.tiff"
-    SEX_SPECIFIC <- "~/XIST/Tissue/Command/Median/DDX3X/Sex_Specific_Violin.tiff"
-    SHARED_VIOLIN <- "~/XIST/Tissue/Command/Median/DDX3X/Shared_Violin.tiff"
-    BRAIN_VIOLIN <- "~/XIST/Tissue/Command/Median/DDX3X/Brain_Violin.tiff"
-    XIST.R2_SCATTER <- "~/XIST/Tissue/Command/Median/DDX3X/R2_vs_MedianXIST.tiff"
-    VENN.INCOMPLETE <- "~/XIST/Tissue/Command/Median/DDX3X/Venn_Incomplete.tiff"
-    VENN.SILENCED <- "~/XIST/Tissue/Command/Median/DDX3X/Venn_Silenced.tiff"
-    VENN.VARIABLE <- "~/XIST/Tissue/Command/Median/DDX3X/Venn_Variable.tiff"
-    INTER_VENN <- "~/XIST/Tissue/Command/Median/DDX3X/Intersect_Venn.tiff"
-    R2_VIOLIN <- "~/XIST/Tissue/Command/Median/DDX3X/R2_Violin.tiff"
-    BALATON_COR <- "~/XIST/Tissue/Command/Median/DDX3X/Balaton_Scatter.tiff"
-if (operation == 'mean' & operation.2 == 'AR'){
-    DATA <- "~/XIST/Tissue/Command/Mean/AR/Command_040620.RData"
-    F.QQ <- "~/XIST/Tissue/Command/Mean/AR/Fem_QQ_Plots.pdf"
-    M.QQ <- "~/XIST/Tissue/Command/Mean/AR/Male_QQ_Plots.pdf"
-    F.SCATTER <- "~/XIST/Tissue/Command/Mean/AR/Fem_Tissue_Scatter_Plots.pdf"
-    M.SCATTER <- "~/XIST/Tissue/Command/Mean/AR/Male_Tissue_Scatter_Plots.pdf"
-    R2_SCATTER <- "~/XIST/Tissue/Command/Mean/AR/R2_Scatter.tiff"
-    F.BRAIN_XIST <- "~/XIST/Tissue/Command/Mean/AR/Fem_Brain_XIST.tiff"
-    M.BRAIN_XIST <- "~/XIST/Tissue/Command/Mean/AR/Male_Brain_XIST.tiff"
-    F.NOT_BRAIN_XIST <- "~/XIST/Tissue/Command/Mean/AR/Fem_NotBrain_XIST.tiff"
-    M.NOT_BRAIN_XIST <- "~/XIST/Tissue/Command/Mean/AR/Male_NotBrain_XIST.tiff"
-    SEX_SPECIFIC <- "~/XIST/Tissue/Command/Mean/AR/Sex_Specific_Violin.tiff"
-    SHARED_VIOLIN <- "~/XIST/Tissue/Command/Mean/AR/Shared_Violin.tiff"
-    BRAIN_VIOLIN <- "~/XIST/Tissue/Command/Mean/AR/Brain_Violin.tiff"
-    XIST.R2_SCATTER <- "~/XIST/Tissue/Command/Mean/AR/R2_vs_CentralXIST.tiff"
-    VENN.INCOMPLETE <- "~/XIST/Tissue/Command/Mean/AR/Venn_Incomplete.tiff"
-    VENN.SILENCED <- "~/XIST/Tissue/Command/Mean/AR/Venn_Silenced.tiff"
-    VENN.VARIABLE <- "~/XIST/Tissue/Command/Mean/AR/Venn_Variable.tiff"
-    INTER_VENN <- "~/XIST/Tissue/Command/Mean/AR/Intersect_Venn.tiff"
-    R2_VIOLIN <- "~/XIST/Tissue/Command/Mean/AR/R2_Violin.tiff"
-    BALATON_COR <- "~/XIST/Tissue/Command/Mean/AR/Balaton_Scatter.tiff"
-} else if (operation == 'median' & operation.2 == 'AR'){
-    DATA <- "~/XIST/Tissue/Command/Median/AR/Command_040620.RData"
-    F.QQ <- "~/XIST/Tissue/Command/Median/AR/Fem_QQ_Plots.pdf"
-    M.QQ <- "~/XIST/Tissue/Command/Median/AR/Male_QQ_Plots.pdf"
-    F.SCATTER <- "~/XIST/Tissue/Command/Median/AR/Fem_Tissue_Scatter_Plots.pdf"
-    M.SCATTER <- "~/XIST/Tissue/Command/Median/AR/Male_Tissue_Scatter_Plots.pdf"
-    R2_SCATTER <- "~/XIST/Tissue/Command/Median/AR/R2_Scatter.tiff"
-    F.BRAIN_XIST <- "~/XIST/Tissue/Command/Median/AR/Fem_Brain_XIST.tiff"
-    M.BRAIN_XIST <- "~/XIST/Tissue/Command/Median/AR/Male_Brain_XIST.tiff"
-    F.NOT_BRAIN_XIST <- "~/XIST/Tissue/Command/Median/AR/Fem_NotBrain_XIST.tiff"
-    M.NOT_BRAIN_XIST <- "~/XIST/Tissue/Command/Median/AR/Male_NotBrain_XIST.tiff"
-    SEX_SPECIFIC <- "~/XIST/Tissue/Command/Median/AR/Sex_Specific_Violin.tiff"
-    SHARED_VIOLIN <- "~/XIST/Tissue/Command/Median/AR/Shared_Violin.tiff"
-    BRAIN_VIOLIN <- "~/XIST/Tissue/Command/Median/AR/Brain_Violin.tiff"
-    XIST.R2_SCATTER <- "~/XIST/Tissue/Command/Median/AR/R2_vs_MedianXIST.tiff"
-    VENN.INCOMPLETE <- "~/XIST/Tissue/Command/Median/AR/Venn_Incomplete.tiff"
-    VENN.SILENCED <- "~/XIST/Tissue/Command/Median/AR/Venn_Silenced.tiff"
-    VENN.VARIABLE <- "~/XIST/Tissue/Command/Median/AR/Venn_Variable.tiff"
-    INTER_VENN <- "~/XIST/Tissue/Command/Median/AR/Intersect_Venn.tiff"
-    R2_VIOLIN <- "~/XIST/Tissue/Command/Median/AR/R2_Violin.tiff"
-    BALATON_COR <- "~/XIST/Tissue/Command/Median/AR/Balaton_Scatter.tiff"
+# Paths
+MEAN <- "~/XIST/Tissue/Command/Mean"
+MEDIAN <- "~/XIST/Tissue/Command/Median"
+XIST <- "XIST"
+AR <- "AR"
+DDX3X <- "DDX3X"
+
+# Output
+if (operation == 'Mean' & operation.2 == 'XIST'){
+    DATA <- file.path(MEAN, XIST, "Mean_XIST.RData")
+    F.QQ <- file.path(MEAN, XIST, "Fem_QQ_Plots.pdf")
+    M.QQ <- file.path(MEAN, XIST, "Male_QQ_Plots.pdf")
+    F.SCATTER <- file.path(MEAN, XIST, "Fem_Tissue_Scatter_Plots.pdf")
+    M.SCATTER <- file.path(MEAN, XIST, "Male_Tissue_Scatter_Plots.pdf")
+    R2_SCATTER <- file.path(MEAN, XIST, "R2_Scatter.tiff")
+    F.BRAIN_XIST <- file.path(MEAN, XIST, "Fem_Brain_XIST.tiff")
+    M.BRAIN_XIST <- file.path(MEAN, XIST, "Male_Brain_XIST.tiff")
+    F.NOT_BRAIN_XIST <- file.path(MEAN, XIST, "Fem_NotBrain_XIST.tiff")
+    M.NOT_BRAIN_XIST <- file.path(MEAN, XIST, "Male_NotBrain_XIST.tiff")
+    SEX_SPECIFIC <- file.path(MEAN, XIST, "Sex_Specific_Violin.tiff")
+    SHARED_VIOLIN <- file.path(MEAN, XIST, "Shared_Violin.tiff")
+    BRAIN_VIOLIN <- file.path(MEAN, XIST,"Brain_Violin.tiff")
+    XIST.R2_SCATTER <- file.path(MEAN, XIST,"R2_vs_CentralXIST.tiff")
+    VENN.INCOMPLETE <- file.path(MEAN, XIST,"Venn_Incomplete.tiff")
+    VENN.SILENCED <- file.path(MEAN, XIST,"Venn_Silenced.tiff")
+    VENN.VARIABLE <- file.path(MEAN, XIST,"Venn_Variable.tiff")
+    INTER_VENN <- file.path(MEAN, XIST,"Intersect_Venn.tiff")
+    R2_VIOLIN <- file.path(MEAN, XIST,"R2_Violin.tiff")
+    BALATON_COR <- file.path(MEAN, XIST,"Balaton_Scatter.tiff")
+} else if (operation == 'Median' & operation.2 == 'XIST'){
+    DATA <- file.path(MEDIAN, XIST, "Median_XIST.RData")
+    F.QQ <- file.path(MEDIAN, XIST, "Fem_QQ_Plots.pdf")
+    M.QQ <- file.path(MEDIAN, XIST, "Male_QQ_Plots.pdf")
+    F.SCATTER <- file.path(MEDIAN, XIST, "Fem_Tissue_Scatter_Plots.pdf")
+    M.SCATTER <- file.path(MEDIAN, XIST, "Male_Tissue_Scatter_Plots.pdf")
+    R2_SCATTER <- file.path(MEDIAN, XIST, "R2_Scatter.tiff")
+    F.BRAIN_XIST <- file.path(MEDIAN, XIST, "Fem_Brain_XIST.tiff")
+    M.BRAIN_XIST <- file.path(MEDIAN, XIST, "Male_Brain_XIST.tiff")
+    F.NOT_BRAIN_XIST <- file.path(MEDIAN, XIST, "Fem_NotBrain_XIST.tiff")
+    M.NOT_BRAIN_XIST <- file.path(MEDIAN, XIST, "Male_NotBrain_XIST.tiff")
+    SEX_SPECIFIC <- file.path(MEDIAN, XIST, "Sex_Specific_Violin.tiff")
+    SHARED_VIOLIN <- file.path(MEDIAN, XIST, "Shared_Violin.tiff")
+    BRAIN_VIOLIN <- file.path(MEDIAN, XIST,"Brain_Violin.tiff")
+    XIST.R2_SCATTER <- file.path(MEDIAN, XIST,"R2_vs_CentralXIST.tiff")
+    VENN.INCOMPLETE <- file.path(MEDIAN, XIST,"Venn_Incomplete.tiff")
+    VENN.SILENCED <- file.path(MEDIAN, XIST,"Venn_Silenced.tiff")
+    VENN.VARIABLE <- file.path(MEDIAN, XIST,"Venn_Variable.tiff")
+    INTER_VENN <- file.path(MEDIAN, XIST,"Intersect_Venn.tiff")
+    R2_VIOLIN <- file.path(MEDIAN, XIST,"R2_Violin.tiff")
+    BALATON_COR <- file.path(MEDIAN, XIST,"Balaton_Scatter.tiff")
+} else if (operation == 'Mean' & operation.2 == 'DDX3X'){
+    DATA <- file.path(MEAN, DDX3X, "Mean_DDX3X.RData")
+    F.QQ <- file.path(MEAN, DDX3X, "Fem_QQ_Plots.pdf")
+    M.QQ <- file.path(MEAN, DDX3X, "Male_QQ_Plots.pdf")
+    F.SCATTER <- file.path(MEAN, DDX3X, "Fem_Tissue_Scatter_Plots.pdf")
+    M.SCATTER <- file.path(MEAN, DDX3X, "Male_Tissue_Scatter_Plots.pdf")
+    R2_SCATTER <- file.path(MEAN, DDX3X, "R2_Scatter.tiff")
+    F.BRAIN_DDX3X <- file.path(MEAN, DDX3X, "Fem_Brain_DDX3X.tiff")
+    M.BRAIN_DDX3X <- file.path(MEAN, DDX3X, "Male_Brain_DDX3X.tiff")
+    F.NOT_BRAIN_DDX3X <- file.path(MEAN, DDX3X, "Fem_NotBrain_DDX3X.tiff")
+    M.NOT_BRAIN_DDX3X <- file.path(MEAN, DDX3X, "Male_NotBrain_DDX3X.tiff")
+    SEX_SPECIFIC <- file.path(MEAN, DDX3X, "Sex_Specific_Violin.tiff")
+    SHARED_VIOLIN <- file.path(MEAN, DDX3X, "Shared_Violin.tiff")
+    BRAIN_VIOLIN <- file.path(MEAN, DDX3X,"Brain_Violin.tiff")
+    DDX3X.R2_SCATTER <- file.path(MEAN, DDX3X,"R2_vs_CentralDDX3X.tiff")
+    VENN.INCOMPLETE <- file.path(MEAN, DDX3X,"Venn_Incomplete.tiff")
+    VENN.SILENCED <- file.path(MEAN, DDX3X,"Venn_Silenced.tiff")
+    VENN.VARIABLE <- file.path(MEAN, DDX3X,"Venn_Variable.tiff")
+    INTER_VENN <- file.path(MEAN, DDX3X,"Intersect_Venn.tiff")
+    R2_VIOLIN <- file.path(MEAN, DDX3X,"R2_Violin.tiff")
+    BALATON_COR <- file.path(MEAN, DDX3X,"Balaton_Scatter.tiff")
+} else if (operation == 'Median' & operation.2 == 'DDX3X'){
+    DATA <- file.path(MEDIAN, DDX3X, "Median_DDX3X.RData")
+    F.QQ <- file.path(MEDIAN, DDX3X, "Fem_QQ_Plots.pdf")
+    M.QQ <- file.path(MEDIAN, DDX3X, "Male_QQ_Plots.pdf")
+    F.SCATTER <- file.path(MEDIAN, DDX3X, "Fem_Tissue_Scatter_Plots.pdf")
+    M.SCATTER <- file.path(MEDIAN, DDX3X, "Male_Tissue_Scatter_Plots.pdf")
+    R2_SCATTER <- file.path(MEDIAN, DDX3X, "R2_Scatter.tiff")
+    F.BRAIN_DDX3X <- file.path(MEDIAN, DDX3X, "Fem_Brain_DDX3X.tiff")
+    M.BRAIN_DDX3X <- file.path(MEDIAN, DDX3X, "Male_Brain_DDX3X.tiff")
+    F.NOT_BRAIN_DDX3X <- file.path(MEDIAN, DDX3X, "Fem_NotBrain_DDX3X.tiff")
+    M.NOT_BRAIN_DDX3X <- file.path(MEDIAN, DDX3X, "Male_NotBrain_DDX3X.tiff")
+    SEX_SPECIFIC <- file.path(MEDIAN, DDX3X, "Sex_Specific_Violin.tiff")
+    SHARED_VIOLIN <- file.path(MEDIAN, DDX3X, "Shared_Violin.tiff")
+    BRAIN_VIOLIN <- file.path(MEDIAN, DDX3X,"Brain_Violin.tiff")
+    DDX3X.R2_SCATTER <- file.path(MEDIAN, DDX3X,"R2_vs_CentralDDX3X.tiff")
+    VENN.INCOMPLETE <- file.path(MEDIAN, DDX3X,"Venn_Incomplete.tiff")
+    VENN.SILENCED <- file.path(MEDIAN, DDX3X,"Venn_Silenced.tiff")
+    VENN.VARIABLE <- file.path(MEDIAN, DDX3X,"Venn_Variable.tiff")
+    INTER_VENN <- file.path(MEDIAN, DDX3X,"Intersect_Venn.tiff")
+    R2_VIOLIN <- file.path(MEDIAN, DDX3X,"R2_Violin.tiff")
+    BALATON_COR <- file.path(MEDIAN, DDX3X,"Balaton_Scatter.tiff")
+} else if (operation == 'Mean' & operation.2 == 'AR'){
+    DATA <- file.path(MEAN, AR, "Mean_AR.RData")
+    F.QQ <- file.path(MEAN, AR, "Fem_QQ_Plots.pdf")
+    M.QQ <- file.path(MEAN, AR, "Male_QQ_Plots.pdf")
+    F.SCATTER <- file.path(MEAN, AR, "Fem_Tissue_Scatter_Plots.pdf")
+    M.SCATTER <- file.path(MEAN, AR, "Male_Tissue_Scatter_Plots.pdf")
+    R2_SCATTER <- file.path(MEAN, AR, "R2_Scatter.tiff")
+    F.BRAIN_AR <- file.path(MEAN, AR, "Fem_Brain_AR.tiff")
+    M.BRAIN_AR <- file.path(MEAN, AR, "Male_Brain_AR.tiff")
+    F.NOT_BRAIN_AR <- file.path(MEAN, AR, "Fem_NotBrain_AR.tiff")
+    M.NOT_BRAIN_AR <- file.path(MEAN, AR, "Male_NotBrain_AR.tiff")
+    SEX_SPECIFIC <- file.path(MEAN, AR, "Sex_Specific_Violin.tiff")
+    SHARED_VIOLIN <- file.path(MEAN, AR, "Shared_Violin.tiff")
+    BRAIN_VIOLIN <- file.path(MEAN, AR,"Brain_Violin.tiff")
+    AR.R2_SCATTER <- file.path(MEAN, AR,"R2_vs_CentralAR.tiff")
+    VENN.INCOMPLETE <- file.path(MEAN, AR,"Venn_Incomplete.tiff")
+    VENN.SILENCED <- file.path(MEAN, AR,"Venn_Silenced.tiff")
+    INTER_VENN <- file.path(MEAN, AR,"Intersect_Venn.tiff")
+    R2_VIOLIN <- file.path(MEAN, AR,"R2_Violin.tiff")
+    BALATON_COR <- file.path(MEAN, AR,"Balaton_Scatter.tiff")
+} else if (operation == 'Median' & operation.2 == 'AR'){
+    DATA <- file.path(MEDIAN, AR, "Median_AR.RData")
+    F.QQ <- file.path(MEDIAN, AR, "Fem_QQ_Plots.pdf")
+    M.QQ <- file.path(MEDIAN, AR, "Male_QQ_Plots.pdf")
+    F.SCATTER <- file.path(MEDIAN, AR, "Fem_Tissue_Scatter_Plots.pdf")
+    M.SCATTER <- file.path(MEDIAN, AR, "Male_Tissue_Scatter_Plots.pdf")
+    R2_SCATTER <- file.path(MEDIAN, AR, "R2_Scatter.tiff")
+    F.BRAIN_AR <- file.path(MEDIAN, AR, "Fem_Brain_AR.tiff")
+    M.BRAIN_AR <- file.path(MEDIAN, AR, "Male_Brain_AR.tiff")
+    F.NOT_BRAIN_AR <- file.path(MEDIAN, AR, "Fem_NotBrain_AR.tiff")
+    M.NOT_BRAIN_AR <- file.path(MEDIAN, AR, "Male_NotBrain_AR.tiff")
+    SEX_SPECIFIC <- file.path(MEDIAN, AR, "Sex_Specific_Violin.tiff")
+    SHARED_VIOLIN <- file.path(MEDIAN, AR, "Shared_Violin.tiff")
+    BRAIN_VIOLIN <- file.path(MEDIAN, AR,"Brain_Violin.tiff")
+    AR.R2_SCATTER <- file.path(MEDIAN, AR,"R2_vs_CentralAR.tiff")
+    VENN.INCOMPLETE <- file.path(MEDIAN, AR,"Venn_Incomplete.tiff")
+    VENN.SILENCED <- file.path(MEDIAN, AR,"Venn_Silenced.tiff")
+    VENN.VARIABLE <- file.path(MEDIAN, AR,"Venn_Variable.tiff")
+    INTER_VENN <- file.path(MEDIAN, AR,"Intersect_Venn.tiff")
+    R2_VIOLIN <- file.path(MEDIAN, AR,"R2_Violin.tiff")
+    BALATON_COR <- file.path(MEDIAN, AR,"Balaton_Scatter.tiff")
 }
 
 # Load libraries
@@ -182,6 +167,10 @@ library(ggplot2)
 
 # Load session data
 load(DATA)
+
+# Needs to be caps...
+#operation <- 'Mean'
+#operation.2 <- 'XIST'
 
 # Vectors for subsetting dfs
 Brain_Tissues <- c("Brain - Cortex", "Brain - Hippocampus", "Brain - Substantia nigra",                 
@@ -323,12 +312,18 @@ ggsave(BALATON_COR, device="tiff")
 # ______________________________________________________________________________________________________________________
 # Combine relevant cols from dfs
 # df of R2_CentralX and Mean_XIST for both females and males
-Subset_f.df <- f.Regression[ ,c('Tissue', 'R2_CentralX', paste0(operation,'_', operation.2), 'pval_CentralX')]
+Subset_f.df <- f.Regression[ ,c('Tissue', 
+                                'R2_CentralX', 
+                                as.character(paste0(operation,'_', operation.2)), 
+                                'pval_CentralX')]
 Common_f.df <- Subset_f.df[Subset_f.df$Tissue %in% Shared, ]
 Common_f.df$Sex <- 'Female'
 
 # Add values from males
-Subset_m.df <- m.Regression[ ,c('Tissue', 'R2_CentralX', 'Mean_XIST', 'pval_CentralX')]
+Subset_m.df <- m.Regression[ ,c('Tissue', 
+                                'R2_CentralX', 
+                                as.character(paste0(operation,'_', operation.2)), 
+                                'pval_CentralX')]
 Common_m.df <- Subset_m.df[Subset_m.df$Tissue %in% Shared, ]
 Common_m.df$Sex <- 'Male'
 
@@ -351,7 +346,7 @@ ggplot(Common.df, aes(x=Tissue, y=R2_CentralX)) +
  geom_point(aes(shape=Sex, fill=Sex, alpha=p_Factor)) +
  scale_shape_manual(values=c(21,22)) +
  scale_fill_manual(values=c('blue', 'green')) +
- ggtitle(paste0('Scatter plot of R2 (', operation, 'X chr', '~', operation.2,') in Female and Male Tissues')) +
+ ggtitle(paste0('Scatter plot of R2 (', operation, 'X chr ~ ', operation.2,') in Female and Male Tissues')) +
  xlab('Tissue Type') +
  ylab('R2 (MeanX~ XIST)') +
  ylim(c(0,1)) +
@@ -362,7 +357,8 @@ ggsave(R2_SCATTER, device="tiff")
 #  Scatter plot of R^2 of MeanX and XIST vs XIST
 # ______________________________________________________________________________________________________________________
 # Scatter plot
-ggplot(Common.df, aes(x=Mean_XIST, y=R2_CentralX)) +
+xaxis <- paste0(operation, '_', operation.2)
+ggplot(Common.df, aes_string(x=xaxis, y="R2_CentralX")) +
   geom_point(aes(shape=Sex, fill=Sex, alpha=p_Factor)) +
   scale_shape_manual(values=c(21,22)) +
   scale_fill_manual(values=c('blue', 'green')) +
@@ -476,7 +472,7 @@ ggplot(Sex_Specific.df,
    scale_fill_manual(values=c('blue', 'green')) +
    ylim(c(0,80)) + 
    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-   ggtitle("Violin plot of mean X expression in sex-specific tissues")
+   ggtitle(paste("Violin plot of", operation, "X expression in sex-specific tissues"))
 ggsave(SEX_SPECIFIC, width=5, height=5, device="tiff")
 
 # ______________________________________________________________________________________________________________________
@@ -488,7 +484,7 @@ Brain_f.df[,1:2] <- log10(Brain_f.df[,1:2])
 Not_Brain_f.df[,1:2] <- log10(Not_Brain_f.df[,1:2]) 
 
 #Violin plot function
-XIST_Violin <- function(DF, YLIM, TITLE){
+Predictor_Violin <- function(DF, YLIM, TITLE){
     ggplot(DF, 
            aes(x = Tissue,
                y = Gene,
@@ -501,19 +497,19 @@ XIST_Violin <- function(DF, YLIM, TITLE){
         ggtitle(TITLE) +
         guides(fill=FALSE)
 }
-XIST_Violin(DF=Brain_f.df, 
+Predictor_Violin(DF=Brain_f.df, 
             YLIM=c(0, ceiling(max(Brain_f.df$Gene))), 
             TITLE=paste("Violin plot of log10", operation.2, "expression across female brain tissues"))
 ggsave(F.BRAIN_XIST, device="tiff")
-XIST_Violin(DF=Not_Brain_f.df, 
+Predictor_Violin(DF=Not_Brain_f.df, 
             YLIM=c(0, ceiling(max(Not_Brain_f.df$Gene))), 
             TITLE=paste("Violin plot of log10", operation.2, "expression across female tissues"))
 ggsave(F.NOT_BRAIN_XIST, device="tiff")
-XIST_Violin(DF=Brain_m.df, 
+Predictor_Violin(DF=Brain_m.df, 
             YLIM=c(0, ceiling(max(Brain_m.df$Gene))), 
             TITLE=paste("Violin plot of",operation.2, "expression across male brain tissues"))
 ggsave(M.BRAIN_XIST, device="tiff")
-XIST_Violin(DF=Not_Brain_m.df, 
+Predictor_Violin(DF=Not_Brain_m.df, 
             YLIM=c(0, ceiling(max(Not_Brain_m.df$Gene))), 
             TITLE=paste("Violin plot of", operation.2, "expression across male tissues"))
 ggsave(M.NOT_BRAIN_XIST, device="tiff")
