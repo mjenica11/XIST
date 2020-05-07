@@ -3,6 +3,10 @@
 # Plots related to tissue linear model results
 setwd("~/XIST/")
 
+# Needs to be caps...
+operation <- 'Mean'
+operation.2 <- 'XIST'
+
 DATA <- "~/XIST/Tissue/Xpressed/Command/Mean_XIST.RData"
 F.QQ <- "~/XIST/Tissue/Xpressed/Command/Fem_QQ_Plots.pdf"
 M.QQ <- "~/XIST/Tissue/Xpressed/Command/Male_QQ_Plots.pdf"
@@ -296,7 +300,8 @@ dev.off()
 # Subset regression df to contain only relevant data
 Bal.df <- f.Regression[,c('Tissue', 'R2_CentralX', 'R2_Bal_Silenced', 'R2_Bal_Variable', 'R2_Bal_Incomplete')]
 
-# Convert df to 'tall' format; i.e. combine n cols to one column and repeat the col containing the rownames (Tissue) n times 
+# Convert df to 'tall' format; 
+# i.e. combine n cols to one column and repeat the col containing the rownames (Tissue) n times 
 Bal.df <- melt(Bal.df, id.vars='Tissue')
 
 # Rename cols 
@@ -318,7 +323,7 @@ ggsave(BALATON_COR, device="tiff")
 # ______________________________________________________________________________________________________________________
 # Combine relevant cols from dfs
 # df of R2_CentralX and Mean_XIST for both females and males
-Subset_f.df <- f.Regression[ ,c('Tissue', 'R2_CentralX', 'Mean_XIST', 'pval_CentralX')]
+Subset_f.df <- f.Regression[ ,c('Tissue', 'R2_CentralX', paste0(operation,'_', operation.2), 'pval_CentralX')]
 Common_f.df <- Subset_f.df[Subset_f.df$Tissue %in% Shared, ]
 Common_f.df$Sex <- 'Female'
 
@@ -346,7 +351,7 @@ ggplot(Common.df, aes(x=Tissue, y=R2_CentralX)) +
  geom_point(aes(shape=Sex, fill=Sex, alpha=p_Factor)) +
  scale_shape_manual(values=c(21,22)) +
  scale_fill_manual(values=c('blue', 'green')) +
- ggtitle('Scatter plot of R2 (MeanX ~ XIST) in Female and Male Tissues') +
+ ggtitle(paste0('Scatter plot of R2 (', operation, 'X chr', '~', operation.2,') in Female and Male Tissues')) +
  xlab('Tissue Type') +
  ylab('R2 (MeanX~ XIST)') +
  ylim(c(0,1)) +
@@ -361,9 +366,9 @@ ggplot(Common.df, aes(x=Mean_XIST, y=R2_CentralX)) +
   geom_point(aes(shape=Sex, fill=Sex, alpha=p_Factor)) +
   scale_shape_manual(values=c(21,22)) +
   scale_fill_manual(values=c('blue', 'green')) +
-  ggtitle('R^2 for XIST and Mean X vs Mean XIST') +
-  xlab('Mean XIST') +
-  ylab('R2 for XIST and Mean X') +
+  ggtitle(paste('R^2 for', operation.2, 'and', operation, 'X chr vs', operation, operation.2)) +
+  xlab(paste(operation, operation.2)) +
+  ylab(paste('R2 for', operation.2, 'and', operation, 'X')) +
   xlim(0,150) +
   ylim(0,1) 
 ggsave(XIST.R2_SCATTER, device="tiff")
